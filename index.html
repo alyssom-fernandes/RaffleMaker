@@ -38,7 +38,7 @@
   .kpi .barra-prog i{ display:block; height:100%; width:0; background:var(--azul); border-radius:3px; transition:width .3s }
 
   .layout{ display:grid; grid-template-columns:minmax(0,1fr) 420px; gap:16px; align-items:start }
-  .coluna{ display:grid; gap:16px; min-width:0 }
+  .coluna{ display:grid; grid-template-columns:minmax(0,1fr); gap:16px; min-width:0 }
   .cartao{ background:var(--cartao); border:1px solid var(--linha); border-radius:20px; padding:18px }
   .cartao h2{ font-size:18px; font-weight:700; letter-spacing:-.02em }
   .cartao h3{ font-size:14px; font-weight:700; margin:16px 0 8px }
@@ -115,6 +115,7 @@
   .previa iframe.ok{ opacity:1 }
   .previa .carregando{ position:absolute; inset:0; display:grid; place-items:center; color:var(--apagado); font-size:13px }
 
+  .rolagem{ overflow-x:auto }
   table{ width:100%; border-collapse:collapse; font-size:14px }
   th{ text-align:left; font-size:12.5px; color:var(--apagado); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--linha) }
   td{ padding:10px; border-bottom:1px solid var(--linha); vertical-align:top }
@@ -140,7 +141,7 @@
   .barra-sel{ display:none }
 
   @media (max-width:1100px){
-    .layout{ grid-template-columns:1fr }
+    .layout{ grid-template-columns:minmax(0,1fr) }
     .kpis{ grid-template-columns:repeat(3,1fr) }
     .barra-sel.on{ display:flex; position:fixed; left:12px; right:12px; bottom:12px; z-index:15; background:var(--azul); color:#fff; border-radius:14px; padding:12px 16px; align-items:center; justify-content:space-between; font-weight:650; box-shadow:0 10px 30px rgba(36,72,240,.35) }
     .barra-sel button{ background:#fff; color:var(--azul); border:0; border-radius:10px; padding:8px 12px; font-weight:700 }
@@ -151,6 +152,9 @@
     .num{ height:40px; font-size:14px }
     #busca{ width:100% }
     .col-whats, .col-valor{ display:none }
+    td.dir{ white-space:normal }
+    .mini{ display:block; margin:6px 0 0 auto; white-space:nowrap }
+    .faixa-mais{ display:none }
     .kpi{ padding:12px }
     .kpi strong{ font-size:19px }
     .linha-campos{ grid-template-columns:1fr }
@@ -158,7 +162,7 @@
 </style>
 </head>
 <body>
-<p class="faixa-demo" id="faixa-demo" hidden><strong>Demonstração: nada é salvo.</strong> Os compradores são fictícios e tudo volta ao início quando a página é recarregada.</p>
+<p class="faixa-demo" id="faixa-demo" hidden><strong>Demonstração: nada é salvo.</strong><span class="faixa-mais"> Os compradores são fictícios e tudo volta ao início quando a página é recarregada.</span></p>
 <div class="pagina">
   <header class="topo">
     <div>
@@ -192,10 +196,10 @@
 
       <section class="cartao">
         <div class="cab"><h2>Compradores</h2><span class="esp"></span><span class="legenda" id="qtd-comp"></span></div>
-        <table>
+        <div class="rolagem"><table>
           <thead><tr><th>Comprador</th><th class="col-whats">WhatsApp</th><th>Números</th><th class="dir col-valor">Valor</th><th class="dir">Situação</th></tr></thead>
           <tbody id="tabela"></tbody>
-        </table>
+        </table></div>
       </section>
     </div>
 
