@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Rifa — 10 Cinema</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=block" rel="stylesheet">
+<style>
+  :root{ --fundo:#f6f3ee; --tinta:#1d1b22; --ambar:#f2a93b; --cinza:#8d8a92; --poltrona:#e7e3dc;
+         --foto:372px; --fonte:22.5px; --blocos:3; --gap:16px; --tit:170px }
+  [data-qtd="400"]{ --foto:304px; --fonte:22px; --blocos:4; --gap:12px; --tit:160px }
+  [data-qtd="500"]{ --foto:246px; --fonte:20px; --blocos:5; --gap:9px; --tit:150px }
+  *{ box-sizing:border-box; margin:0; padding:0 }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:var(--fundo) }
+  body{ font-family:"Barlow",sans-serif; color:var(--tinta); padding:56px; display:flex; flex-direction:column }
+  .letreiro{ flex:none; position:relative; background:var(--tinta); color:#fff; border-radius:26px; padding:36px 46px 32px; display:flex; align-items:center; justify-content:space-between }
+  .luzes{ position:absolute; left:9px; top:9px; right:9px; bottom:9px; border-radius:17px; border:7px dotted var(--ambar) }
+  .letreiro .s{ font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:23px; letter-spacing:.3em; color:var(--ambar) }
+  .letreiro h1{ font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:var(--tit); line-height:.82; letter-spacing:.02em }
+  .letreiro .preco{ text-align:right }
+  .letreiro .preco b{ display:block; font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:96px; line-height:.9; color:var(--ambar); white-space:nowrap }
+  .letreiro .preco span.por{ font-family:"Barlow Condensed",sans-serif; font-size:25px; font-weight:600; letter-spacing:.12em; text-transform:uppercase }
+  .causa{ flex:none; margin-top:20px; display:flex; gap:16px; align-items:center }
+  .sem-causa .causa{ display:none }
+  .causa svg{ width:40px; height:40px; flex:none }
+  .causa p{ font-size:38px; font-weight:700; line-height:1.1; letter-spacing:-.01em; text-wrap:balance }
+  .cartaz-tit{ flex:none; margin-top:20px; font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:24px; letter-spacing:.3em; color:var(--cinza) }
+  .premios{ flex:none; margin-top:8px; display:grid; grid-template-columns:repeat(4,1fr); gap:16px }
+  .foto{ height:var(--foto); border-radius:12px; overflow:hidden; background:#222; position:relative }
+  .foto img{ width:100%; height:100%; object-fit:cover; display:block }
+  .foto i{ position:absolute; right:8px; top:8px; background:var(--ambar); color:var(--tinta); font-style:normal; font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:23px; padding:2px 9px; border-radius:6px }
+  .nome{ margin-top:8px; font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:25px; line-height:1.02; text-transform:uppercase; letter-spacing:.01em }
+  .marca{ font-size:17px; color:var(--cinza); font-weight:500 }
+  .sala{ flex:1; min-height:0; margin-top:14px; display:flex; flex-direction:column }
+  .tela{ flex:none; position:relative; height:44px }
+  .tela svg{ width:100%; height:30px; display:block }
+  .tela span{ position:absolute; left:0; right:0; top:22px; text-align:center; font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:17px; letter-spacing:.5em; color:var(--cinza) }
+  .rotulo{ flex:none; display:flex; align-items:center; gap:22px; height:28px; margin-top:2px }
+  .rotulo h2{ font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:23px; letter-spacing:.14em; text-transform:uppercase }
+  .info{ font-size:17px; color:var(--cinza); display:flex; align-items:center; gap:8px; font-weight:500 }
+  .amostra{ width:24px; height:22px; border-radius:7px 7px 3px 3px; background:var(--ambar) }
+  .status{ margin-left:auto; font-size:18px; font-weight:600; white-space:nowrap }
+  .status b{ font-weight:800 }
+  .sorte-rotulo{ font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:26px; letter-spacing:.04em; text-transform:uppercase; margin-left:12px }
+  .sorte-rotulo em, .sorte em{ font-style:normal; color:var(--ambar) }
+  html:not(.sem-frase) .sorte-rotulo{ display:none }
+  .grade{ flex:1; min-height:0; margin-top:10px; display:grid; grid-template-rows:repeat(var(--blocos),1fr); row-gap:var(--gap) }
+  .bloco{ display:grid; grid-template-columns:repeat(10,1fr) 22px repeat(10,1fr); grid-template-rows:repeat(5,1fr); gap:6px 3px }
+  .cel{ display:flex; align-items:center; justify-content:center; background:var(--poltrona); border-radius:9px 9px 4px 4px; border-bottom:4px solid #d6d0c7;
+        font-size:var(--fonte); font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-.02em }
+  .cel:nth-of-type(20n+11){ grid-column-start:12 }
+  .cel .z{ opacity:.3 }
+  .cel.vendido{ background:var(--ambar); border-bottom-color:#d18a1f; font-weight:800 }
+  .cel.vendido .z{ opacity:.45 }
+  .rodape{ flex:none; margin-top:16px; display:flex; align-items:baseline; justify-content:flex-end; gap:24px }
+  .sem-frase .rodape{ display:none }
+  .frase{ flex:1; min-width:0; font-size:22px; line-height:1.15; font-weight:600; text-wrap:balance }
+  .sorte{ flex:none; font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:34px; letter-spacing:.04em; text-transform:uppercase }
+</style>
+</head>
+<body>
+  <section class="letreiro">
+    <i class="luzes"></i>
+    <div><div class="s">SESSÃO SOLIDÁRIA</div><h1>RIFA</h1></div>
+    <div class="preco"><b>R$ <span data-valor>20</span></b><span class="por">por número</span></div>
+  </section>
+  <div class="causa">
+    <svg viewBox="0 0 24 22"><path fill="#f2a93b" d="M12 21.5s-8.6-5.3-11.3-10.7C-1.2 7 1 2 5.8 2c2.7 0 4.4 1.6 6.2 4 1.8-2.4 3.5-4 6.2-4 4.8 0 7 5 5.1 8.8C20.6 16.2 12 21.5 12 21.5z"/></svg>
+    <p data-causa data-ajuste="max:38;min:26;linhas:3"></p>
+  </div>
+  <p class="cartaz-tit">EM CARTAZ · 4 PRÊMIOS · Nº 001 — <span class="qtd-fim">300</span></p>
+  <section class="premios">
+    <article><div class="foto"><img src="fotos/v1-panela.jpg" alt=""><i>1º</i></div><p class="nome">Panela Elétrica de Pressão</p><p class="marca">Agratto</p></article>
+    <article><div class="foto"><img src="fotos/v2-kit-perfume.jpg" alt=""><i>2º</i></div><p class="nome">Kit Perfume Unissex</p><p class="marca">L’Essence</p></article>
+    <article><div class="foto"><img src="fotos/v3-botina.jpg" alt=""><i>3º</i></div><p class="nome">Botina Masculina</p><p class="marca">FlexFort</p></article>
+    <article><div class="foto"><img src="fotos/v4-cafeteira.jpg" alt=""><i>4º</i></div><p class="nome">Cafeteira Elétrica</p><p class="marca">Cadence</p></article>
+  </section>
+  <section class="sala">
+    <div class="tela"><svg viewBox="0 0 968 30" preserveAspectRatio="none"><path d="M10 26 Q484 -8 958 26" fill="none" stroke="#1d1b22" stroke-width="5" stroke-linecap="round"/></svg><span>TELA</span></div>
+    <div class="rotulo">
+      <h2>Escolha sua poltrona</h2>
+      <div class="info"><span class="amostra"></span><span>ocupada</span></div>
+      <div class="status" id="status"></div>
+      <p class="sorte-rotulo">Boa <em>sorte!</em></p>
+    </div>
+    <div class="grade" id="grade"></div>
+  </section>
+  <footer class="rodape"><p class="frase" data-frase data-ajuste="max:22;min:15;linhas:2"></p><p class="sorte">Boa <em>sorte!</em></p></footer>
+<script src="motor.js"></script>
+</body>
+</html>

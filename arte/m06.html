@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Rifa — 6 Jornal</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Archivo:wdth,wght@62..125,100..900&display=block" rel="stylesheet">
+<style>
+  :root{ --papel:#f1eee6; --tinta:#151515; --vermelho:#b3261e; --cinza:#5f5c55;
+         --foto:290px; --fonte:22px; --blocos:3; --gap:9px; --man:68px }
+  [data-qtd="400"]{ --foto:238px; --fonte:21.5px; --blocos:4; --gap:7px; --man:62px }
+  [data-qtd="500"]{ --foto:196px; --fonte:19.5px; --blocos:5; --gap:6px; --man:56px }
+  *{ box-sizing:border-box; margin:0; padding:0 }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:var(--papel) }
+  body{ position:relative; font-family:"Newsreader",serif; color:var(--tinta) }
+  .pag{ position:absolute; inset:56px; display:flex; flex-direction:column }
+  .cabeca{ flex:none; border-top:6px solid var(--tinta); border-bottom:1px solid var(--tinta); padding:6px 0 4px; text-align:center }
+  .jornal{ font-size:96px; font-weight:800; letter-spacing:-.025em; line-height:1; font-variation-settings:"opsz" 72 }
+  .edicao{ flex:none; display:flex; justify-content:space-between; border-bottom:3px double var(--tinta); padding:8px 2px 9px; font-family:"Archivo",sans-serif; font-size:16px; font-weight:700; letter-spacing:.14em; text-transform:uppercase }
+  .manchete{ flex:none; margin-top:20px; font-size:var(--man); line-height:.98; font-weight:800; letter-spacing:-.025em; font-variation-settings:"opsz" 72; text-wrap:balance }
+  .sem-causa .manchete{ display:none }
+  .linha-fina{ flex:none; margin-top:12px; font-size:30px; font-style:italic; line-height:1.2; color:#2b2a27 }
+  .fotos{ flex:none; margin-top:18px; display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; border-top:1px solid var(--tinta); padding-top:14px }
+  .foto{ height:var(--foto); overflow:hidden; background:#222 }
+  .foto img{ width:100%; height:100%; object-fit:cover; display:block }
+  .leg{ margin-top:6px; font-size:20px; font-style:italic; line-height:1.2; color:var(--cinza) }
+  .leg b{ font-style:normal; font-family:"Archivo",sans-serif; font-weight:800; font-size:15px; letter-spacing:.12em; text-transform:uppercase; color:var(--tinta); margin-right:6px }
+  .classif{ flex:none; margin-top:16px; border-top:3px double var(--tinta); padding-top:8px; display:flex; align-items:baseline; gap:20px; font-family:"Archivo",sans-serif }
+  .classif h2{ font-size:20px; font-weight:800; letter-spacing:.18em; text-transform:uppercase }
+  .info{ font-size:17px; color:var(--cinza); display:flex; align-items:center; gap:8px; font-weight:600 }
+  .amostra{ position:relative; width:28px; height:20px; border:1px solid var(--tinta) }
+  .status{ margin-left:auto; font-size:18px; font-weight:600; white-space:nowrap }
+  .status b{ color:var(--vermelho); font-weight:800 }
+  .grade{ flex:1; min-height:0; margin-top:8px; display:grid; grid-template-rows:repeat(var(--blocos),1fr); row-gap:var(--gap) }
+  .bloco{ display:grid; grid-template-columns:repeat(20,1fr); grid-template-rows:repeat(5,1fr); border-top:1px solid var(--tinta); border-bottom:1px solid var(--tinta) }
+  .cel{ position:relative; display:flex; align-items:center; justify-content:center; font-size:var(--fonte); font-weight:600; font-variant-numeric:tabular-nums lining-nums; border-right:1px solid rgba(21,21,21,.18) }
+  .cel:nth-of-type(20n){ border-right:0 }
+  .cel:nth-of-type(n+21){ border-top:1px solid rgba(21,21,21,.12) }
+  .cel .z{ opacity:.3 }
+  .cel.vendido{ color:rgba(21,21,21,.35) }
+  .traco{ position:absolute; left:6%; right:6%; top:50%; height:3px; margin-top:-1.5px; background:var(--vermelho); transform:rotate(-12deg) }
+  .rodape{ flex:none; margin-top:10px; display:flex; align-items:baseline; justify-content:flex-end; gap:24px; border-top:1px solid var(--tinta); padding-top:6px }
+  .frase{ flex:1; min-width:0; font-size:22px; line-height:1.15; font-style:italic; color:#2b2a27; text-wrap:balance }
+  .sem-frase .frase{ display:none }
+  .sorte{ flex:none; font-size:36px; line-height:1; font-style:italic; font-weight:700 }
+  .grao{ position:absolute; inset:0; background:url(grao.webp); opacity:.4; pointer-events:none; z-index:3 }
+</style>
+</head>
+<body>
+  <div class="pag">
+    <header class="cabeca"><div class="jornal">Diário da Rifa</div></header>
+    <div class="edicao"><span>Edição solidária</span><span>Nº 001 — <span class="qtd-fim">300</span></span></div>
+    <h1 class="manchete" data-causa data-ajuste="max:var(--man);min:40;linhas:3"></h1>
+    <p class="linha-fina">Concorra a quatro prêmios por R$ <span data-valor>20</span> o número.</p>
+    <section class="fotos">
+      <figure><div class="foto"><img src="fotos/h1-panela.jpg" alt=""></div><figcaption class="leg"><b>1º</b>Panela Elétrica de Pressão, Agratto.</figcaption></figure>
+      <figure><div class="foto"><img src="fotos/h2-kit-perfume.jpg" alt="" style="object-position:50% 80%"></div><figcaption class="leg"><b>2º</b>Kit Perfume Unissex, L’Essence.</figcaption></figure>
+      <figure><div class="foto"><img src="fotos/h3-botina.jpg" alt=""></div><figcaption class="leg"><b>3º</b>Botina Masculina, FlexFort.</figcaption></figure>
+      <figure><div class="foto"><img src="fotos/h4-cafeteira.jpg" alt="" style="object-position:50% 30%"></div><figcaption class="leg"><b>4º</b>Cafeteira Elétrica, Cadence.</figcaption></figure>
+    </section>
+    <div class="classif">
+      <h2>Números</h2>
+      <div class="info"><span class="amostra"><i class="traco"></i></span><span>vendido</span></div>
+      <div class="status" id="status"></div>
+    </div>
+    <div class="grade" id="grade"></div>
+    <footer class="rodape"><p class="frase" data-frase data-ajuste="max:22;min:16;linhas:2"></p><p class="sorte">Boa sorte!</p></footer>
+  </div>
+  <div class="grao"></div>
+<template id="tpl-marca" data-onde="depois"><i class="traco"></i></template>
+<script src="motor.js"></script>
+</body>
+</html>

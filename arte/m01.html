@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Rifa — 1 Cartela</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=block" rel="stylesheet">
+<style>
+  :root{ --fundo:#133426; --verde:#183f30; --papel:#f4ecdb; --papel-2:#ebe1cb; --mostarda:#e3a62b; --terracota:#c2512f;
+         --tc-texto:#b4472a; --linha:rgba(24,63,48,.16); --linha-forte:rgba(24,63,48,.5);
+         --foto:410px; --fonte:29.5px; --blocos:3; --gap:14px }
+  [data-qtd="400"]{ --foto:340px; --fonte:28px; --blocos:4; --gap:12px }
+  [data-qtd="500"]{ --foto:280px; --fonte:25px; --blocos:5; --gap:10px }
+  *{ box-sizing:border-box; margin:0; padding:0 }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:var(--fundo) }
+  body{ position:relative; font-family:"Archivo",sans-serif; color:var(--verde) }
+  .grao{ position:absolute; inset:0; background:url(grao.webp); pointer-events:none }
+  .cartela{ position:absolute; left:36px; top:36px; width:1008px; height:1848px; background:var(--papel); display:flex; flex-direction:column }
+  .cartela > .grao{ opacity:.75; z-index:0 }
+  .cartela > :not(.grao){ position:relative; z-index:1 }
+
+  .canhoto{ flex:none; min-height:296px; padding:40px 46px 17px }
+  .serie{ font-size:20px; line-height:24px; font-weight:650; letter-spacing:.2em; opacity:.72 }
+  .titulo{ margin:-16px 0 0 -8px; font-family:"Fraunces",serif; font-weight:900; font-size:200px; line-height:1;
+           font-variation-settings:"SOFT" 100, "WONK" 0; letter-spacing:-.02em }
+  .causa{ margin-top:4px; max-width:640px; font-family:"Fraunces",serif; font-style:italic; font-weight:600; font-size:39px;
+          line-height:1.08; color:var(--tc-texto); font-variation-settings:"SOFT" 70; text-wrap:balance }
+  .sem-causa .causa{ display:none }
+  .selo{ position:absolute; right:40px; top:30px; width:240px; height:240px; transform:rotate(-9deg) }
+  .picote{ flex:none; display:block; width:940px; height:6px; margin:-3px 34px 0 }
+
+  .premios{ flex:none; margin-top:23px; display:grid; grid-template-columns:repeat(4,1fr); gap:3px }
+  .foto{ height:var(--foto); overflow:hidden; position:relative; background:#222 }
+  .foto img{ width:100%; height:100%; object-fit:cover; display:block }
+  .ordem{ position:absolute; left:8px; top:8px; width:70px; height:70px; border-radius:50%; background:var(--mostarda); border:4px solid var(--papel);
+          display:grid; place-items:center; font-family:"Fraunces",serif; font-weight:800; font-size:29px; color:var(--verde); font-variation-settings:"SOFT" 100 }
+  .leg{ padding:12px 12px 0 16px }
+  .nome{ font-size:23px; line-height:1.12; font-weight:720; font-stretch:88% }
+  .marca{ margin-top:4px; font-family:"Fraunces",serif; font-style:italic; font-size:21px; opacity:.78 }
+
+  .numeros{ flex:1; min-height:0; display:flex; flex-direction:column; margin:18px 44px 0 }
+  .rotulo{ display:flex; align-items:center; gap:26px; height:30px; padding:0 2px; flex:none }
+  .rotulo h2{ font-size:22px; font-weight:800; letter-spacing:.16em; text-transform:uppercase }
+  .info{ font-size:19px; font-weight:560; opacity:.75; display:flex; align-items:center; gap:10px }
+  .amostra{ position:relative; width:30px; height:24px; border:1.5px solid var(--linha-forte); border-radius:4px; background:var(--papel-2); overflow:hidden }
+  .status{ margin-left:auto; font-size:19px; font-weight:560; color:rgba(24,63,48,.8); white-space:nowrap }
+  .status b{ font-weight:800 }
+  .grade{ flex:1; min-height:0; margin-top:12px; display:grid; grid-template-rows:repeat(var(--blocos),1fr); row-gap:var(--gap) }
+  .bloco{ display:grid; grid-template-columns:repeat(20,1fr); grid-template-rows:repeat(5,1fr); border:1.5px solid var(--linha-forte); border-radius:10px; overflow:hidden }
+  .cel{ position:relative; display:flex; align-items:center; justify-content:center; white-space:nowrap;
+        font-size:var(--fonte); font-weight:620; font-stretch:62%; font-variant-numeric:tabular-nums;
+        border-right:1px solid var(--linha); border-bottom:1px solid var(--linha) }
+  .cel:nth-of-type(20n){ border-right:0 }
+  .cel:nth-of-type(20n+10){ border-right:1.5px solid var(--linha-forte) }
+  .cel:nth-last-of-type(-n+20){ border-bottom:0 }
+  .cel .z{ opacity:.32 }
+  .cel.vendido{ background:var(--papel-2); color:rgba(24,63,48,.38) }
+  .cel.vendido .z{ opacity:1 }
+  .risco{ position:absolute; left:0; top:0; width:100%; height:100% }
+
+  .rodape{ flex:none; margin:14px 46px 26px; display:flex; align-items:baseline; justify-content:flex-end; gap:28px }
+  .frase{ flex:1; min-width:0; font-size:22px; line-height:1.15; font-weight:560; color:rgba(24,63,48,.88); text-wrap:balance }
+  .sem-frase .frase{ display:none }
+  .sorte{ flex:none; font-family:"Fraunces",serif; font-style:italic; font-weight:500; font-size:48px; line-height:1; font-variation-settings:"SOFT" 100 }
+</style>
+</head>
+<body>
+  <div class="grao"></div>
+  <main class="cartela">
+    <div class="grao"></div>
+    <section class="canhoto">
+      <p class="serie">Nº 001 — <span class="qtd-fim">300</span></p>
+      <h1 class="titulo">Rifa</h1>
+      <p class="causa" data-causa data-ajuste="max:39;min:26;linhas:3"></p>
+      <svg class="selo" viewBox="0 0 244 244">
+        <defs><path id="anel" d="M122,122 m-94,0 a94,94 0 1,1 188,0 a94,94 0 1,1 -188,0"/></defs>
+        <circle cx="122" cy="122" r="120" fill="#e3a62b"/>
+        <circle cx="122" cy="122" r="111" fill="none" stroke="#183f30" stroke-width="2"/>
+        <circle cx="122" cy="122" r="77" fill="none" stroke="#183f30" stroke-width="2"/>
+        <text font-family="Archivo" font-size="16.5" font-weight="760" letter-spacing="2.4" fill="#183f30"><textPath href="#anel" textLength="586" lengthAdjust="spacing">CONCORRA A 4 PRÊMIOS • SUA AJUDA FAZ A DIFERENÇA •</textPath></text>
+        <g data-encaixe-svg="148">
+          <text x="122" y="138" text-anchor="middle" fill="#183f30" font-family="Fraunces" font-weight="900" style="font-variation-settings:'SOFT' 100"><tspan font-size="30" dy="-26" dx="-4">R$</tspan><tspan font-size="78" dy="26" dx="3" data-valor>20</tspan></text>
+        </g>
+        <text x="122" y="166" text-anchor="middle" fill="#183f30" font-family="Archivo" font-size="15" font-weight="700" letter-spacing="2.4">POR NÚMERO</text>
+      </svg>
+    </section>
+    <svg class="picote" viewBox="0 0 940 6"><defs><pattern id="furos" width="15" height="6" patternUnits="userSpaceOnUse"><circle cx="7.5" cy="3" r="2.6" fill="rgba(24,63,48,.55)"/></pattern></defs><rect width="940" height="6" fill="url(#furos)"/></svg>
+
+    <section class="premios">
+      <article><div class="foto"><img src="fotos/v1-panela.jpg" alt=""><div class="ordem">1º</div></div><div class="leg"><p class="nome">Panela Elétrica<br>de Pressão</p><p class="marca">Agratto</p></div></article>
+      <article><div class="foto"><img src="fotos/v2-kit-perfume.jpg" alt=""><div class="ordem">2º</div></div><div class="leg"><p class="nome">Kit Perfume<br>Unissex</p><p class="marca">L’Essence</p></div></article>
+      <article><div class="foto"><img src="fotos/v3-botina.jpg" alt=""><div class="ordem">3º</div></div><div class="leg"><p class="nome">Botina<br>Masculina</p><p class="marca">FlexFort</p></div></article>
+      <article><div class="foto"><img src="fotos/v4-cafeteira.jpg" alt=""><div class="ordem">4º</div></div><div class="leg"><p class="nome">Cafeteira<br>Elétrica</p><p class="marca">Cadence</p></div></article>
+    </section>
+
+    <section class="numeros">
+      <div class="rotulo">
+        <h2>Números</h2>
+        <div class="info"><span class="amostra"><svg class="risco" viewBox="0 0 10 10" preserveAspectRatio="none"><line x1="0" y1="10" x2="10" y2="0" stroke="#c2512f" stroke-width="4.6" vector-effect="non-scaling-stroke"/></svg></span><span>vendido</span></div>
+        <div class="status" id="status"></div>
+      </div>
+      <div class="grade" id="grade"></div>
+    </section>
+    <footer class="rodape"><p class="frase" data-frase data-ajuste="max:22;min:15;linhas:2"></p><p class="sorte">Boa sorte!</p></footer>
+  </main>
+
+<template id="tpl-marca" data-onde="depois"><svg class="risco" viewBox="0 0 10 10" preserveAspectRatio="none"><line x1="0" y1="10" x2="10" y2="0" stroke="#c2512f" stroke-width="4.6" vector-effect="non-scaling-stroke"/></svg></template>
+<script>
+  // o recorte lateral da cartela acompanha a linha picotada (que desce quando a causa ocupa mais linhas)
+  window.rifaDepois = function () {
+    var c = document.querySelector('.cartela'), p = document.querySelector('.picote');
+    var y = p.offsetTop + p.offsetHeight / 2, w = c.offsetWidth, h = c.offsetHeight, r = 28, n = 20;
+    c.style.clipPath = 'path("M' + r + ',0 H' + (w - r) + ' A' + r + ',' + r + ' 0 0 1 ' + w + ',' + r +
+      ' V' + (y - n) + ' A' + n + ',' + n + ' 0 0 0 ' + w + ',' + (y + n) + ' V' + (h - r) +
+      ' A' + r + ',' + r + ' 0 0 1 ' + (w - r) + ',' + h + ' H' + r + ' A' + r + ',' + r + ' 0 0 1 0,' + (h - r) +
+      ' V' + (y + n) + ' A' + n + ',' + n + ' 0 0 0 0,' + (y - n) + ' V' + r + ' A' + r + ',' + r + ' 0 0 1 ' + r + ',0 Z")';
+  };
+</script>
+<script src="motor.js"></script>
+</body>
+</html>

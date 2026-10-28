@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Rifa — 5 Capa</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400..800&display=block" rel="stylesheet">
+<style>
+  :root{ --laranja:#ff5a1f; --tinta:#111111; --branco:#ffffff; --cinza:#8a8a8a;
+         --foto:332px; --fonte:22px; --blocos:3; --gap:12px; --tit:200px }
+  [data-qtd="400"]{ --foto:276px; --fonte:21.5px; --blocos:4; --gap:9px; --tit:184px }
+  [data-qtd="500"]{ --foto:226px; --fonte:20px; --blocos:5; --gap:7px; --tit:170px }
+  *{ box-sizing:border-box; margin:0; padding:0 }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:var(--branco) }
+  body{ font-family:"Manrope",sans-serif; color:var(--tinta); display:flex; flex-direction:column }
+  .topo{ flex:none; background:var(--laranja); padding:56px 60px 28px }
+  .micro{ display:flex; justify-content:space-between; font-size:18px; font-weight:800; letter-spacing:.18em; text-transform:uppercase }
+  .linha-tit{ display:flex; align-items:flex-end; justify-content:space-between; margin-top:8px }
+  .titulo{ font-family:"Anton",sans-serif; font-weight:400; font-size:var(--tit); line-height:.86; color:var(--branco) }
+  .preco{ width:212px; height:212px; border-radius:50%; background:var(--tinta); color:var(--branco); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; margin-bottom:8px; transform:rotate(-8deg) }
+  .preco .v{ width:176px; font-family:"Anton",sans-serif; font-size:88px; line-height:.9; white-space:nowrap }
+  .preco .v small{ font-size:.41em; vertical-align:.36em; margin-right:4px }
+  .preco .p{ font-size:16px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; margin-top:6px; color:var(--laranja) }
+  .causa{ margin-top:20px; font-size:38px; line-height:1.1; font-weight:800; letter-spacing:-.02em; text-wrap:balance; max-width:940px }
+  .causa svg{ display:inline-block; width:.74em; height:.68em; margin-right:.22em; vertical-align:-.04em }
+  .sem-causa .causa{ display:none }
+  .mosaico{ flex:none; display:grid; grid-template-columns:1fr 1fr; gap:4px }
+  .peca{ position:relative; height:var(--foto); overflow:hidden; background:#222 }
+  .peca img{ width:100%; height:100%; object-fit:cover; display:block }
+  .etq{ position:absolute; left:16px; bottom:16px; background:var(--branco); border-radius:10px; padding:8px 12px 9px; max-width:84% }
+  .etq b{ display:block; font-size:20px; font-weight:800; line-height:1.15 }
+  .etq b i{ font-style:normal; color:var(--laranja) }
+  .etq span{ font-size:16px; color:var(--cinza); font-weight:600 }
+  .numeros{ flex:1; min-height:0; display:flex; flex-direction:column; padding:18px 60px 56px }
+  .rotulo{ flex:none; display:flex; align-items:center; gap:24px; height:30px }
+  .rotulo h2{ font-size:23px; font-weight:800 }
+  .info{ font-size:18px; font-weight:600; color:var(--cinza); display:flex; align-items:center; gap:10px }
+  .amostra{ width:22px; height:22px; border-radius:50%; background:var(--laranja) }
+  .status{ margin-left:auto; font-size:19px; font-weight:600; white-space:nowrap }
+  .status b{ font-weight:800; color:var(--laranja) }
+  .grade{ flex:1; min-height:0; margin-top:10px; display:grid; grid-template-rows:repeat(var(--blocos),1fr); row-gap:var(--gap) }
+  .bloco{ display:grid; grid-template-columns:repeat(20,1fr); grid-template-rows:repeat(5,1fr); border-top:2px solid var(--tinta); padding-top:3px }
+  .cel{ position:relative; display:flex; align-items:center; justify-content:center; font-size:var(--fonte); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.04em }
+  .cel span{ position:relative }
+  .cel .z{ opacity:.22 }
+  .marca-v{ position:absolute; left:50%; top:50%; width:1.72em; height:1.72em; margin:-.86em 0 0 -.86em; border-radius:50%; background:var(--laranja) }
+  .cel.vendido{ color:var(--branco) }
+  .cel.vendido .z{ opacity:.7 }
+  .rodape{ flex:none; margin-top:10px; display:flex; align-items:baseline; justify-content:flex-end; gap:24px }
+  .frase{ flex:1; min-width:0; font-size:20px; line-height:1.15; font-weight:700; text-wrap:balance }
+  .sem-frase .frase{ display:none }
+  .sorte{ flex:none; font-family:"Anton",sans-serif; font-size:42px; line-height:1; color:var(--laranja); text-transform:uppercase }
+</style>
+</head>
+<body>
+  <header class="topo">
+    <div class="micro"><span>Sua ajuda faz a diferença</span><span>Nº 001 — <span class="qtd-fim">300</span></span></div>
+    <div class="linha-tit">
+      <h1 class="titulo">RIFA</h1>
+      <div class="preco"><div class="v" data-encaixe><small>R$</small><span data-valor>20</span></div><div class="p">por número</div></div>
+    </div>
+    <p class="causa" data-ajuste="max:38;min:28;linhas:3"><svg viewBox="0 0 24 22"><path fill="#ffffff" d="M12 21.5s-8.6-5.3-11.3-10.7C-1.2 7 1 2 5.8 2c2.7 0 4.4 1.6 6.2 4 1.8-2.4 3.5-4 6.2-4 4.8 0 7 5 5.1 8.8C20.6 16.2 12 21.5 12 21.5z"/></svg><span data-causa></span></p>
+  </header>
+  <section class="mosaico">
+    <div class="peca"><img src="fotos/h1-panela.jpg" alt=""><div class="etq"><b><i>1º</i> Panela Elétrica de Pressão</b><span>Agratto</span></div></div>
+    <div class="peca"><img src="fotos/h2-kit-perfume.jpg" alt="" style="object-position:50% 80%"><div class="etq"><b><i>2º</i> Kit Perfume Unissex</b><span>L’Essence</span></div></div>
+    <div class="peca"><img src="fotos/h3-botina.jpg" alt=""><div class="etq"><b><i>3º</i> Botina Masculina</b><span>FlexFort</span></div></div>
+    <div class="peca"><img src="fotos/h4-cafeteira.jpg" alt="" style="object-position:50% 30%"><div class="etq"><b><i>4º</i> Cafeteira Elétrica</b><span>Cadence</span></div></div>
+  </section>
+  <section class="numeros">
+    <div class="rotulo">
+      <h2>Números</h2>
+      <div class="info"><span class="amostra"></span><span>vendido</span></div>
+      <div class="status" id="status"></div>
+    </div>
+    <div class="grade" id="grade"></div>
+    <footer class="rodape"><p class="frase" data-frase data-ajuste="max:20;min:15;linhas:2"></p><p class="sorte">Boa sorte!</p></footer>
+  </section>
+<template id="tpl-marca" data-onde="antes"><i class="marca-v"></i></template>
+<script src="motor.js"></script>
+</body>
+</html>

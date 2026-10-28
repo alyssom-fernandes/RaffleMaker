@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Rifa — 9 Blocos</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&family=Hanken+Grotesk:wght@400..800&display=block" rel="stylesheet">
+<style>
+  :root{ --fundo:#f2eee7; --ardosia:#34495a; --terracota:#c8603f; --salvia:#8fa98c; --mostarda:#dca444; --creme:#fbf7f0; --tinta:#1d2226;
+         --foto:300px; --fonte:22px; --blocos:3; --gap:8px; --topo:236px }
+  [data-qtd="400"]{ --foto:246px; --fonte:20px; --blocos:4; --gap:6px; --topo:220px }
+  [data-qtd="500"]{ --foto:200px; --fonte:18px; --blocos:5; --gap:5px; --topo:204px }
+  *{ box-sizing:border-box; margin:0; padding:0 }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:var(--fundo) }
+  body{ font-family:"Hanken Grotesk",sans-serif; color:var(--tinta); padding:48px; display:flex; flex-direction:column; gap:12px }
+  .b{ border-radius:28px }
+  .topo{ flex:none; display:grid; grid-template-columns:1fr 330px; gap:12px; height:var(--topo) }
+  .titulo{ background:var(--ardosia); color:var(--creme); padding:26px 30px; display:flex; flex-direction:column; justify-content:space-between }
+  .titulo .m{ font-size:17px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; opacity:.8 }
+  .titulo h1{ font-family:"Unbounded",sans-serif; font-weight:900; font-size:128px; line-height:.86; letter-spacing:-.04em }
+  .preco{ background:var(--mostarda); padding:24px 28px; display:flex; flex-direction:column; justify-content:space-between }
+  .preco .v{ font-family:"Unbounded",sans-serif; font-weight:900; font-size:98px; letter-spacing:-.05em; line-height:.9; white-space:nowrap }
+  .preco .v small{ font-size:.37em; letter-spacing:-.02em; vertical-align:.43em; margin-right:6px }
+  .preco .p{ font-size:21px; font-weight:700 }
+  .causa{ flex:none; background:var(--terracota); color:var(--creme); padding:22px 30px 24px; display:flex; gap:22px; align-items:center }
+  .sem-causa .causa{ display:none }
+  .causa svg{ width:62px; height:62px; flex:none }
+  .causa .t{ font-size:38px; font-weight:800; line-height:1.1; letter-spacing:-.02em; text-wrap:balance }
+  .premios{ flex:none; display:grid; grid-template-columns:1fr 1fr; gap:12px }
+  .premio{ padding:12px 12px 14px; display:flex; flex-direction:column; gap:10px }
+  .premio:nth-child(1){ background:var(--salvia) } .premio:nth-child(2){ background:var(--ardosia); color:var(--creme) }
+  .premio:nth-child(3){ background:var(--mostarda) } .premio:nth-child(4){ background:var(--terracota); color:var(--creme) }
+  .foto{ height:var(--foto); border-radius:18px; overflow:hidden; background:#222 }
+  .foto img{ width:100%; height:100%; object-fit:cover; display:block }
+  .leg{ display:flex; align-items:baseline; gap:12px; padding:0 6px }
+  .leg .o{ font-family:"Unbounded",sans-serif; font-weight:900; font-size:32px; letter-spacing:-.04em }
+  .leg .n{ font-size:21px; font-weight:800; line-height:1.15 }
+  .leg .n span{ display:block; font-weight:500; font-size:17px; opacity:.8 }
+  .numeros{ flex:1; min-height:0; background:var(--creme); padding:16px 20px 18px; display:flex; flex-direction:column }
+  .rotulo{ flex:none; display:flex; align-items:center; gap:22px; height:28px }
+  .rotulo h2{ font-family:"Unbounded",sans-serif; font-size:19px; font-weight:800 }
+  .info{ font-size:17px; color:#6c6f72; display:flex; align-items:center; gap:8px; font-weight:600 }
+  .amostra{ width:26px; height:22px; border-radius:6px; background:var(--ardosia) }
+  .status{ margin-left:auto; font-size:18px; font-weight:600; white-space:nowrap }
+  .status b{ font-weight:800; color:var(--terracota) }
+  .sorte-rotulo{ font-family:"Unbounded",sans-serif; font-weight:900; font-size:22px; letter-spacing:-.02em; color:var(--terracota) }
+  html:not(.sem-frase) .sorte-rotulo{ display:none }
+  .grade{ flex:1; min-height:0; margin-top:10px; display:grid; grid-template-rows:repeat(var(--blocos),1fr); row-gap:var(--gap) }
+  .bloco{ display:grid; grid-template-columns:repeat(20,1fr); grid-template-rows:repeat(5,1fr); gap:2px; border-radius:12px; padding:3px }
+  .bloco:nth-child(5n+1){ background:#e7eee6 } .bloco:nth-child(5n+2){ background:#e4e9ee } .bloco:nth-child(5n+3){ background:#f6ead2 }
+  .bloco:nth-child(5n+4){ background:#f3e0d8 } .bloco:nth-child(5n+5){ background:#e7eee6 }
+  .cel{ display:flex; align-items:center; justify-content:center; font-size:var(--fonte); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.02em; border-radius:7px }
+  .cel .z{ opacity:.25 }
+  .cel.vendido{ background:var(--ardosia); color:var(--creme) }
+  .cel.vendido .z{ opacity:.55 }
+  .rodape{ flex:none; background:var(--creme); padding:14px 20px 16px; display:flex; align-items:baseline; justify-content:flex-end; gap:24px }
+  .sem-frase .rodape{ display:none }
+  .frase{ flex:1; min-width:0; font-size:21px; line-height:1.15; font-weight:600; text-wrap:balance }
+  .sorte{ flex:none; font-family:"Unbounded",sans-serif; font-weight:900; font-size:24px; letter-spacing:-.02em; color:var(--terracota) }
+</style>
+</head>
+<body>
+  <section class="topo">
+    <div class="titulo b"><span class="m">Nº 001 — <span class="qtd-fim">300</span> · 4 prêmios</span><h1>Rifa</h1></div>
+    <div class="preco b"><div class="v" data-encaixe><small>R$</small><span data-valor>20</span></div><div class="p">por número</div></div>
+  </section>
+  <section class="causa b">
+    <svg viewBox="0 0 24 22"><path fill="#fbf7f0" d="M12 21.5s-8.6-5.3-11.3-10.7C-1.2 7 1 2 5.8 2c2.7 0 4.4 1.6 6.2 4 1.8-2.4 3.5-4 6.2-4 4.8 0 7 5 5.1 8.8C20.6 16.2 12 21.5 12 21.5z"/></svg>
+    <p class="t" data-causa data-ajuste="max:38;min:26;linhas:3"></p>
+  </section>
+  <section class="premios">
+    <article class="premio b"><div class="foto"><img src="fotos/h1-panela.jpg" alt=""></div><div class="leg"><span class="o">1º</span><p class="n">Panela Elétrica de Pressão<span>Agratto</span></p></div></article>
+    <article class="premio b"><div class="foto"><img src="fotos/h2-kit-perfume.jpg" alt="" style="object-position:50% 80%"></div><div class="leg"><span class="o">2º</span><p class="n">Kit Perfume Unissex<span>L’Essence</span></p></div></article>
+    <article class="premio b"><div class="foto"><img src="fotos/h3-botina.jpg" alt=""></div><div class="leg"><span class="o">3º</span><p class="n">Botina Masculina<span>FlexFort</span></p></div></article>
+    <article class="premio b"><div class="foto"><img src="fotos/h4-cafeteira.jpg" alt="" style="object-position:50% 30%"></div><div class="leg"><span class="o">4º</span><p class="n">Cafeteira Elétrica<span>Cadence</span></p></div></article>
+  </section>
+  <section class="numeros b">
+    <div class="rotulo">
+      <h2>Números</h2>
+      <div class="info"><span class="amostra"></span><span>vendido</span></div>
+      <div class="status" id="status"></div>
+      <span class="sorte-rotulo">Boa sorte!</span>
+    </div>
+    <div class="grade" id="grade"></div>
+  </section>
+  <footer class="rodape b"><p class="frase" data-frase data-ajuste="max:21;min:15;linhas:2"></p><p class="sorte">Boa sorte!</p></footer>
+<script src="motor.js"></script>
+</body>
+</html>

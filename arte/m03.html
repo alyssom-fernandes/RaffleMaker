@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR" data-encolher="--card">
+<head>
+<meta charset="utf-8">
+<title>Rifa — 3 Bento</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=block" rel="stylesheet">
+<style>
+  :root{ --fundo:#eeede8; --cartao:#ffffff; --tinta:#16171b; --cinza:#76767c; --linha:#ebeae5; --azul:#2448f0; --azul-claro:#e3e8fd;
+         --card:352px; --fotol:300px; --fonte:21px; --blocos:3; --gap:15px }
+  [data-qtd="400"]{ --card:290px; --fotol:272px; --fonte:21px; --blocos:4; --gap:11px }
+  [data-qtd="500"]{ --card:236px; --fotol:236px; --fonte:19.5px; --blocos:5; --gap:9px }
+  *{ box-sizing:border-box; margin:0; padding:0 }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:var(--fundo) }
+  body{ font-family:"Geist",sans-serif; color:var(--tinta); padding:56px; display:flex; flex-direction:column }
+  .cab{ flex:none; display:flex; justify-content:space-between; align-items:flex-start }
+  .micro{ font-size:19px; font-weight:500; color:var(--cinza) }
+  .titulo{ font-size:136px; font-weight:800; line-height:.92; letter-spacing:-.065em; margin-top:6px }
+  .sub{ font-size:32px; font-weight:600; letter-spacing:-.02em; margin-top:8px }
+  .preco{ width:250px; border-radius:30px; background:var(--azul); color:#fff; padding:24px 28px 22px; margin-top:6px }
+  .preco .valor{ font-size:70px; font-weight:800; line-height:1; letter-spacing:-.045em; white-space:nowrap }
+  .preco .valor small{ font-size:.46em; font-weight:700; margin-right:4px; vertical-align:.37em }
+  .preco .por{ font-size:20px; font-weight:500; opacity:.85; margin-top:10px }
+  .causa{ flex:none; margin-top:20px; background:var(--azul-claro); color:#1630b8; border-radius:26px; padding:20px 26px 22px; display:flex; gap:18px; align-items:center }
+  .sem-causa .causa{ display:none }
+  .causa svg{ width:46px; height:46px; flex:none }
+  .causa p{ font-size:36px; font-weight:700; line-height:1.12; letter-spacing:-.025em; text-wrap:balance }
+  .premios{ flex:none; margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:16px }
+  .cartao{ display:grid; grid-template-columns:var(--fotol) 1fr; height:var(--card); background:var(--cartao); border-radius:30px; overflow:hidden }
+  .foto{ height:var(--card) }
+  .foto img{ width:100%; height:100%; object-fit:cover; display:block }
+  .txt{ display:flex; flex-direction:column; justify-content:space-between; padding:20px 16px 20px 18px }
+  .ord{ font-size:48px; font-weight:800; line-height:1; letter-spacing:-.05em; color:var(--azul) }
+  .nome{ font-size:20px; font-weight:650; line-height:1.16; letter-spacing:-.015em }
+  .marca{ margin-top:5px; font-size:17px; font-weight:500; color:var(--cinza) }
+  .rotulo{ flex:none; display:flex; align-items:center; gap:24px; height:30px; margin-top:20px; padding:0 4px }
+  .rotulo h2{ font-size:23px; font-weight:700; letter-spacing:-.02em }
+  .info{ font-size:19px; font-weight:500; color:var(--cinza); display:flex; align-items:center; gap:10px }
+  .amostra{ width:34px; height:22px; border-radius:11px; background:var(--azul) }
+  .status{ margin-left:auto; font-size:19px; font-weight:500; white-space:nowrap }
+  .status b{ font-weight:750; color:var(--azul) }
+  .sorte-rotulo{ font-size:23px; font-weight:750; color:var(--azul); margin-left:14px }
+  html:not(.sem-frase) .sorte-rotulo{ display:none }
+  .caixa-grade{ flex:1; min-height:0; margin-top:12px; background:var(--cartao); border-radius:30px; padding:16px; display:flex }
+  .grade{ flex:1; display:grid; grid-template-rows:repeat(var(--blocos),1fr); row-gap:var(--gap) }
+  .bloco{ position:relative; display:grid; grid-template-columns:repeat(20,1fr); grid-template-rows:repeat(5,1fr) }
+  .sep{ position:absolute; left:6px; right:6px; top:calc(var(--gap) / -2); height:1px; background:var(--linha) }
+  .cel{ position:relative; display:flex; align-items:center; justify-content:center; font-size:var(--fonte); font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-.03em }
+  .cel:nth-of-type(20n+10){ border-right:1px solid var(--linha) }
+  .cel span{ position:relative }
+  .cel .z{ opacity:.22 }
+  .marca-v{ position:absolute; left:50%; top:50%; width:44px; height:1.34em; margin:-.67em 0 0 -22px; border-radius:999px; background:var(--azul) }
+  .cel.vendido{ color:#fff; font-weight:650 }
+  .cel.vendido .z{ opacity:.6 }
+  .rodape{ flex:none; margin-top:16px; padding:0 4px; display:flex; align-items:baseline; justify-content:flex-end; gap:24px }
+  .sem-frase .rodape{ display:none }
+  .frase{ flex:1; min-width:0; font-size:21px; line-height:1.15; font-weight:500; text-wrap:balance }
+  .sorte{ flex:none; font-size:23px; font-weight:750; color:var(--azul) }
+</style>
+</head>
+<body>
+  <header class="cab">
+    <div>
+      <p class="micro">Nº 001 — <span class="qtd-fim">300</span> · sua ajuda faz a diferença</p>
+      <h1 class="titulo">Rifa</h1>
+      <p class="sub">Concorra a 4 prêmios</p>
+    </div>
+    <div class="preco"><div class="valor" data-encaixe><small>R$</small><span data-valor>20</span></div><div class="por">por número</div></div>
+  </header>
+  <section class="causa">
+    <svg viewBox="0 0 24 22"><path fill="#2448f0" d="M12 21.5s-8.6-5.3-11.3-10.7C-1.2 7 1 2 5.8 2c2.7 0 4.4 1.6 6.2 4 1.8-2.4 3.5-4 6.2-4 4.8 0 7 5 5.1 8.8C20.6 16.2 12 21.5 12 21.5z"/></svg>
+    <p data-causa data-ajuste="max:36;min:26;linhas:3"></p>
+  </section>
+  <section class="premios">
+    <article class="cartao"><div class="foto"><img src="fotos/v1-panela.jpg" alt=""></div><div class="txt"><span class="ord">1º</span><div><p class="nome">Panela Elétrica de Pressão</p><p class="marca">Agratto</p></div></div></article>
+    <article class="cartao"><div class="foto"><img src="fotos/v2-kit-perfume.jpg" alt=""></div><div class="txt"><span class="ord">2º</span><div><p class="nome">Kit Perfume Unissex</p><p class="marca">L’Essence</p></div></div></article>
+    <article class="cartao"><div class="foto"><img src="fotos/v3-botina.jpg" alt=""></div><div class="txt"><span class="ord">3º</span><div><p class="nome">Botina Masculina</p><p class="marca">FlexFort</p></div></div></article>
+    <article class="cartao"><div class="foto"><img src="fotos/v4-cafeteira.jpg" alt=""></div><div class="txt"><span class="ord">4º</span><div><p class="nome">Cafeteira Elétrica</p><p class="marca">Cadence</p></div></div></article>
+  </section>
+  <div class="rotulo">
+    <h2>Números</h2>
+    <div class="info"><span class="amostra"></span><span>vendido</span></div>
+    <div class="status" id="status"></div>
+    <span class="sorte-rotulo">Boa sorte!</span>
+  </div>
+  <div class="caixa-grade"><div class="grade" id="grade" data-sep></div></div>
+  <footer class="rodape"><p class="frase" data-frase data-ajuste="max:21;min:15;linhas:2"></p><p class="sorte">Boa sorte!</p></footer>
+<template id="tpl-marca" data-onde="antes"><i class="marca-v"></i></template>
+<script src="motor.js"></script>
+</body>
+</html>

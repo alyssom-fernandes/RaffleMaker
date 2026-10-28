@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Rifa — 7 Embarque</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Space+Mono:wght@400;700&display=block" rel="stylesheet">
+<style>
+  :root{ --fundo:#dbe6ee; --branco:#ffffff; --verde:#0b7a75; --tinta:#10222b; --cinza:#6b7c85; --linha:#e3eaee;
+         --foto:360px; --fonte:20px; --blocos:3; --gap:12px }
+  [data-qtd="400"]{ --foto:292px; --fonte:20px; --blocos:4; --gap:9px }
+  [data-qtd="500"]{ --foto:236px; --fonte:18.5px; --blocos:5; --gap:7px }
+  *{ box-sizing:border-box; margin:0; padding:0 }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:var(--fundo) }
+  body{ position:relative; font-family:"Space Grotesk",sans-serif; color:var(--tinta) }
+  .bilhete{ position:absolute; inset:40px; background:var(--branco); border-radius:36px; overflow:hidden; display:flex; flex-direction:column }
+  .cab{ flex:none; background:var(--verde); color:#fff; padding:40px 36px 28px }
+  .cab .tipo{ font-family:"Space Mono",monospace; font-size:17px; letter-spacing:.2em; opacity:.8 }
+  .rota{ display:flex; align-items:center; gap:22px; margin-top:10px }
+  .rota .de, .rota .para{ font-size:88px; font-weight:700; letter-spacing:-.04em; line-height:1 }
+  .rota svg{ width:64px; height:64px; flex:none }
+  .rota .linha{ flex:1; border-top:3px dashed rgba(255,255,255,.55) }
+  .rota-leg{ display:flex; justify-content:space-between; font-family:"Space Mono",monospace; font-size:16px; letter-spacing:.12em; opacity:.85; margin-top:6px }
+  .campos{ flex:none; display:flex; gap:40px; padding:24px 36px 0 }
+  .campo .r{ font-family:"Space Mono",monospace; font-size:15px; letter-spacing:.14em; color:var(--cinza); text-transform:uppercase }
+  .campo .v{ font-size:40px; font-weight:700; letter-spacing:-.02em; margin-top:2px; line-height:1.05; white-space:nowrap }
+  .destino{ flex:none; margin:16px 36px 0; background:#e8f4f3; border-radius:18px; padding:16px 20px 18px; display:flex; gap:16px; align-items:center }
+  .destino svg{ width:40px; height:40px; flex:none }
+  .destino p{ font-size:38px; font-weight:700; line-height:1.12; letter-spacing:-.02em; color:var(--verde); text-wrap:balance }
+  .sem-causa .destino{ display:none }
+  .tracejado{ display:block; width:100%; height:3px }
+  .picote{ flex:none; width:auto; margin:22px 28px 0 }
+  .premios{ flex:none; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:20px 36px 0 }
+  .foto{ position:relative; height:var(--foto); border-radius:18px; overflow:hidden; background:#222 }
+  .foto img{ width:100%; height:100%; object-fit:cover; display:block }
+  .foto i{ position:absolute; left:10px; top:10px; background:#fff; color:var(--verde); font-style:normal; font-family:"Space Mono",monospace; font-weight:700; font-size:18px; padding:3px 9px; border-radius:8px }
+  .nome{ margin-top:10px; font-size:21px; font-weight:600; line-height:1.15 }
+  .marca{ margin-top:2px; font-size:16px; color:var(--cinza); font-family:"Space Mono",monospace }
+  .numeros{ flex:1; min-height:0; display:flex; flex-direction:column; padding:18px 36px 0 }
+  .rotulo{ flex:none; display:flex; align-items:center; gap:22px; height:30px }
+  .rotulo h2{ font-family:"Space Mono",monospace; font-size:17px; letter-spacing:.16em; text-transform:uppercase }
+  .info{ font-size:17px; color:var(--cinza); display:flex; align-items:center; gap:8px }
+  .amostra{ width:28px; height:22px; border-radius:6px; background:var(--verde) }
+  .status{ margin-left:auto; font-size:18px; font-weight:500; white-space:nowrap }
+  .status b{ color:var(--verde); font-weight:700 }
+  .grade{ flex:1; min-height:0; margin-top:10px; display:grid; grid-template-rows:repeat(var(--blocos),1fr); row-gap:var(--gap) }
+  .bloco{ display:grid; grid-template-columns:repeat(20,1fr); grid-template-rows:repeat(5,1fr); gap:2px }
+  .cel{ display:flex; align-items:center; justify-content:center; border:1px solid var(--linha); border-radius:7px; font-size:var(--fonte); font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-.04em }
+  .cel .z{ opacity:.3 }
+  .cel.vendido{ background:var(--verde); border-color:var(--verde); color:#fff }
+  .cel.vendido .z{ opacity:.6 }
+  .pe-borda{ flex:none; margin:16px 28px 0; width:auto }
+  .pe{ flex:none; margin:0 28px; padding:16px 8px 22px; display:flex; align-items:center; justify-content:space-between; gap:24px }
+  .codigo{ flex:none; display:block; height:52px; width:420px }
+  html:not(.sem-frase) .codigo{ display:none }
+  .frase{ flex:1; min-width:0; font-size:21px; line-height:1.15; font-weight:500; text-wrap:balance }
+  .sem-frase .frase{ display:none }
+  .sorte{ flex:none; font-size:40px; font-weight:700; letter-spacing:-.03em; color:var(--verde) }
+</style>
+</head>
+<body>
+  <main class="bilhete">
+    <header class="cab">
+      <div class="tipo">CARTÃO DE EMBARQUE · RIFA SOLIDÁRIA</div>
+      <div class="rota">
+        <span class="de">VOCÊ</span><span class="linha"></span>
+        <svg viewBox="0 0 24 24"><path fill="#ffffff" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+        <span class="linha"></span><span class="para">4 PRÊMIOS</span>
+      </div>
+      <div class="rota-leg"><span>PASSAGEIRO</span><span>DESTINO</span></div>
+    </header>
+    <section class="campos">
+      <div class="campo"><div class="r">Valor</div><div class="v">R$ <span data-valor>20</span></div></div>
+      <div class="campo"><div class="r">Números</div><div class="v">001 — <span class="qtd-fim">300</span></div></div>
+    </section>
+    <section class="destino">
+      <svg viewBox="0 0 24 22"><path fill="#0b7a75" d="M12 21.5s-8.6-5.3-11.3-10.7C-1.2 7 1 2 5.8 2c2.7 0 4.4 1.6 6.2 4 1.8-2.4 3.5-4 6.2-4 4.8 0 7 5 5.1 8.8C20.6 16.2 12 21.5 12 21.5z"/></svg>
+      <p data-causa data-ajuste="max:38;min:26;linhas:3"></p>
+    </section>
+    <div class="picote"><svg class="tracejado"><line x1="0" y1="1.5" x2="100%" y2="1.5" stroke="#c9d6dd" stroke-width="3" stroke-dasharray="6 3"/></svg></div>
+    <section class="premios">
+      <article><div class="foto"><img src="fotos/v1-panela.jpg" alt=""><i>1º</i></div><p class="nome">Panela Elétrica de Pressão</p><p class="marca">Agratto</p></article>
+      <article><div class="foto"><img src="fotos/v2-kit-perfume.jpg" alt=""><i>2º</i></div><p class="nome">Kit Perfume Unissex</p><p class="marca">L’Essence</p></article>
+      <article><div class="foto"><img src="fotos/v3-botina.jpg" alt=""><i>3º</i></div><p class="nome">Botina Masculina</p><p class="marca">FlexFort</p></article>
+      <article><div class="foto"><img src="fotos/v4-cafeteira.jpg" alt=""><i>4º</i></div><p class="nome">Cafeteira Elétrica</p><p class="marca">Cadence</p></article>
+    </section>
+    <section class="numeros">
+      <div class="rotulo">
+        <h2>Assentos</h2>
+        <div class="info"><span class="amostra"></span><span>ocupado</span></div>
+        <div class="status" id="status"></div>
+      </div>
+      <div class="grade" id="grade"></div>
+    </section>
+    <div class="pe-borda"><svg class="tracejado"><line x1="0" y1="1.5" x2="100%" y2="1.5" stroke="#c9d6dd" stroke-width="3" stroke-dasharray="6 3"/></svg></div>
+    <footer class="pe"><svg class="codigo" viewBox="0 0 420 52"><defs><pattern id="barras" width="17" height="52" patternUnits="userSpaceOnUse"><rect x="0" width="3" height="52" fill="#10222b"/><rect x="6" width="1" height="52" fill="#10222b"/><rect x="11" width="4" height="52" fill="#10222b"/></pattern></defs><rect width="420" height="52" fill="url(#barras)"/></svg><p class="frase" data-frase data-ajuste="max:21;min:15;linhas:2"></p><p class="sorte">Boa sorte!</p></footer>
+  </main>
+<script src="motor.js"></script>
+</body>
+</html>
