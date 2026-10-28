@@ -22,6 +22,7 @@
   body{ font-family:Geist,"Segoe UI",system-ui,sans-serif; background:var(--fundo); color:var(--tinta); font-size:15px; line-height:1.4 }
   button, input, textarea{ font:inherit; color:inherit }
   .pagina{ max-width:1360px; margin:0 auto; padding:22px 20px 90px }
+  .faixa-demo{ position:sticky; top:0; z-index:20; background:var(--azul); color:#fff; text-align:center; font-size:13.5px; line-height:1.35; padding:9px 16px }
 
   header.topo{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap }
   header h1{ font-size:30px; font-weight:750; letter-spacing:-.03em; line-height:1.1 }
@@ -157,6 +158,7 @@
 </style>
 </head>
 <body>
+<p class="faixa-demo" id="faixa-demo" hidden><strong>Demonstração: nada é salvo.</strong> Os compradores são fictícios e tudo volta ao início quando a página é recarregada.</p>
 <div class="pagina">
   <header class="topo">
     <div>
@@ -256,7 +258,7 @@
 
       <section class="cartao" id="backup">
         <div class="cab"><h2>Backup</h2></div>
-        <p class="info">Os dados ficam guardados só neste navegador. Se o histórico for limpo, eles somem, então salve um backup de vez em quando.</p>
+        <p class="info" id="info-dados">Os dados ficam guardados só neste navegador. Se o histórico for limpo, eles somem, então salve um backup de vez em quando.</p>
         <p class="info" id="info-backup"></p>
         <div class="botoes">
           <button type="button" class="bt" id="b-backup">Salvar backup</button>
@@ -290,8 +292,11 @@ const MODELOS = [
   { id: 6, nome: 'Jornal' }, { id: 7, nome: 'Embarque' }, { id: 8, nome: 'Solidária' }, { id: 9, nome: 'Blocos' }, { id: 10, nome: 'Cinema' }
 ];
 const CHAVE = 'rifa.painel.v1';
-const CAUSA_PADRAO = 'Em prol da reforma da creche do bairro';
+const CAUSA_PADRAO = '';
 const PADRAO = { modelo: 1, riscar: 'todos', numeros: {}, ultimoBackup: null, alteracoes: 0, frase: '', valor: '20', qtd: 300 };
+// ?demo=1 abre uma rifa fictícia só em memória: nunca lê nem grava a CHAVE
+const DEMO = new URLSearchParams(location.search).get('demo') === '1';
+const ROTULO = DEMO ? 'Rifa - demonstração' : 'Rifa';
 const $ = s => document.querySelector(s);
 
 let estado = carregar();
@@ -313,6 +318,7 @@ function completar(s) {
   return e;
 }
 function carregar() {
+  if (DEMO) return completar(demonstracao());
   try {
     const s = JSON.parse(localStorage.getItem(CHAVE));
     if (s && s.numeros) return completar(s);
@@ -320,6 +326,7 @@ function carregar() {
   return completar({});
 }
 function salvar() {
+  if (DEMO) return;
   try {
     localStorage.setItem(CHAVE, JSON.stringify(estado));
     $('#salvo').textContent = 'Salvo neste navegador às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -328,6 +335,34 @@ function salvar() {
     $('#salvo').textContent = 'Não consegui salvar! Faça um backup agora.';
     $('#salvo').classList.add('erro');
   }
+}
+function demonstracao() {
+  const dia = 864e5, agora = Date.now();
+  // nome, WhatsApp, números, quantos já foram pagos, observação, há quantos dias
+  const vendas = [
+    ['Ana Lima', '(11) 90000-0101', [7, 21, 77], 3, '', 12],
+    ['Bruno Costa', '(11) 90000-0102', [12, 13], 0, 'Paga no sábado', 3],
+    ['Carla Mendes', '', [40], 1, '', 11],
+    ['Diego Rocha', '(11) 90000-0104', [100, 150, 207], 2, '', 8],
+    ['Elisa Prado', '(11) 90000-0105', [3], 1, '', 12],
+    ['Fábio Nunes', '(11) 90000-0106', [256], 0, '', 1],
+    ['Gabriela Reis', '(11) 90000-0107', [18, 19, 20, 45, 46], 5, 'Comprou para a família', 10],
+    ['Heitor Alves', '', [33], 1, '', 7],
+    ['Isabela Moura', '(11) 90000-0109', [88, 99, 111, 222], 4, '', 6],
+    ['João Pires', '(11) 90000-0110', [123, 124], 0, '', 2],
+    ['Larissa Teles', '(11) 90000-0111', [50, 60, 70, 80, 90, 91], 6, 'Pagou no Pix', 5],
+    ['Marcos Vieira', '(11) 90000-0112', [171, 172, 173], 3, '', 4],
+    ['Natália Freitas', '', [199, 200], 1, '', 2],
+    ['Otávio Ramos', '(11) 90000-0114', [250, 251, 252, 253], 0, 'Paga na sexta', 1],
+    ['Paula Duarte', '(11) 90000-0115', [280, 290, 300], 3, '', 3]
+  ];
+  const numeros = {};
+  for (const [nome, tel, nums, pagos, obs, dias] of vendas) {
+    const quando = new Date(agora - dias * dia).toISOString();
+    nums.forEach((n, i) => { numeros[n] = { nome, tel, pago: i < pagos, obs, criado: quando, atualizado: quando }; });
+  }
+  return { modelo: 1, riscar: 'todos', numeros, ultimoBackup: new Date(agora - 2 * dia).toISOString(), alteracoes: 4,
+    frase: 'Sorteio pela Loteria Federal', valor: '20', qtd: 300, causa: 'Em prol da reforma da creche do bairro' };
 }
 
 const pad = n => String(n).padStart(3, '0');
@@ -493,6 +528,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 function linkZap(tel) {
   let dig = (tel || '').replace(/\D/g, '');
   if (!dig) return '';
+  if (DEMO) return esc(tel); // telefones fictícios: sem link, para não abrir conversa com um número que exista
   if (dig.length <= 11) dig = '55' + dig;
   return `<a class="zap" href="https://wa.me/${dig}" target="_blank" rel="noopener">${esc(tel)}</a>`;
 }
@@ -618,7 +654,7 @@ async function gerarImagem() {
   const canvas = await rifaFoto(quadro.contentDocument);
   const blob = await new Promise((ok, erro) => canvas.toBlob(b => b ? ok(b) : erro(new Error('falha ao criar o PNG')), 'image/png'));
   const livres = estado.qtd - marcados().length;
-  return { blob, nome: `Rifa - ${modeloAtual().nome} - ${livres} livres - ${carimbo()}.png` };
+  return { blob, nome: `${ROTULO} - ${modeloAtual().nome} - ${livres} livres - ${carimbo()}.png` };
 }
 $('#b-baixar').addEventListener('click', async () => {
   const bt = $('#b-baixar'), texto = bt.textContent;
@@ -671,8 +707,10 @@ function infoBackup() {
 $('#b-backup').addEventListener('click', () => {
   estado.ultimoBackup = new Date().toISOString();
   estado.alteracoes = 0;
-  const conteudo = JSON.stringify({ app: 'painel-da-rifa', versao: 2, salvoEm: estado.ultimoBackup, estado }, null, 2);
-  baixar(new Blob([conteudo], { type: 'application/json' }), `Rifa - backup ${carimbo()}.json`);
+  const copia = { app: 'painel-da-rifa', versao: 2, salvoEm: estado.ultimoBackup, estado };
+  if (DEMO) copia.demo = true;
+  const conteudo = JSON.stringify(copia, null, 2);
+  baixar(new Blob([conteudo], { type: 'application/json' }), `${ROTULO} - backup ${carimbo()}.json`);
   salvar(); infoBackup(); aviso('Backup salvo na pasta Downloads');
 });
 $('#b-restaurar').addEventListener('click', () => $('#arquivo').click());
@@ -682,10 +720,12 @@ $('#arquivo').addEventListener('change', async e => {
   if (!arq) return;
   try {
     const j = JSON.parse(await arq.text());
+    if (j.demo && !DEMO) { alert('Esse arquivo é um backup da demonstração, com dados fictícios, e não pode ser restaurado no painel.'); return; }
     const s = j.estado || j;
     if (!s || typeof s.numeros !== 'object') throw new Error('formato');
     const qtd = Object.keys(s.numeros).length;
-    if (!confirm(`Restaurar este backup (${qtd} números vendidos)? Os dados atuais deste navegador serão substituídos.`)) return;
+    if (!confirm(DEMO ? `Abrir este backup na demonstração (${qtd} números vendidos)? Nada será salvo neste navegador.`
+      : `Restaurar este backup (${qtd} números vendidos)? Os dados atuais deste navegador serão substituídos.`)) return;
     const modeloAntes = estado.modelo;
     estado = completar(s);
     if (vendidos().some(n => n > estado.qtd)) estado.qtd = vendidos().some(n => n > 400) ? 500 : 400;
@@ -705,12 +745,18 @@ $('#b-csv').addEventListener('click', () => {
       d ? new Date(d.atualizado).toLocaleString('pt-BR') : '']);
   }
   const csv = '﻿' + linhas.map(l => l.map(v => campo(String(v))).join(';')).join('\r\n');
-  baixar(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `Rifa - números ${carimbo()}.csv`);
+  baixar(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `${ROTULO} - números ${carimbo()}.csv`);
   aviso('Planilha exportada (abre no Excel)');
 });
 
 /* ---------- início ---------- */
 function atualizarTudo() { resumo(); pintarGrade(); montarTabela(); infoBackup(); atualizarPrevia(); }
+if (DEMO) {
+  document.title = 'Demonstração · ' + document.title;
+  $('#faixa-demo').hidden = false;
+  $('#salvo').hidden = true;
+  $('#info-dados').textContent = 'Na demonstração, nada fica guardado neste navegador. O backup e a planilha baixam os dados fictícios, e Restaurar só abre o arquivo nesta página.';
+}
 if (vendidos().some(n => n > estado.qtd)) estado.qtd = vendidos().some(n => n > 400) ? 500 : 400;
 salvar();
 montarGrade(); montarModelos(); marcarControles(); atualizarVenda(); atualizarTudo(); escalar(); carregarModelo();

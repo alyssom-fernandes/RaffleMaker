@@ -7,7 +7,7 @@
   var doc = document, raiz = doc.documentElement, rodada = 0;
 
   var PADRAO = {
-    causa: 'Em prol da reforma da creche do bairro',
+    causa: '',
     frase: '', valor: '20', qtd: 300, vendidos: []
   };
 
