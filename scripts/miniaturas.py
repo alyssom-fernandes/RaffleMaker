@@ -18,16 +18,19 @@ class Quieto(SimpleHTTPRequestHandler):
         pass
 
 
+class Servidor(ThreadingHTTPServer):
+    request_queue_size = 64  # o navegador abre muitas conexões de uma vez; no Windows, a fila padrão (5) recusa as que sobram
+
+
 # o painel e os modelos só funcionam por http(s)
-srv = ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(Quieto, directory=str(RAIZ)))
+srv = Servidor(("127.0.0.1", 0), functools.partial(Quieto, directory=str(RAIZ)))
 threading.Thread(target=srv.serve_forever, daemon=True).start()
 base = f"http://127.0.0.1:{srv.server_address[1]}/"
 try:
     with sync_playwright() as p:
         nav = p.chromium.launch(channel="msedge")
         pg = nav.new_page(viewport={"width": 1080, "height": 1920})
-        pg.goto(base + "index.html?demo=1")
-        pg.wait_for_function("window.__rifa && window.__rifa.estado")
+        pg.goto(base + "index.html?demo=1")  # o painel cria window.__rifa antes do load, que o goto espera
         q = urllib.parse.urlencode({"causa": pg.evaluate("window.__rifa.estado.causa"), "vendidos": VENDIDOS})
         for m in range(1, 11):
             pg.goto(base + f"arte/m{m:02d}.html?{q}", wait_until="networkidle")

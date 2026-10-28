@@ -1,0 +1,30 @@
+name: testes
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: node --test
+
+  navegador:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Playwright e Pillow
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet playwright==1.60.0 pillow==12.2.0
+          .venv/bin/playwright install --with-deps chromium
+      - name: Painel no navegador
+        run: .venv/bin/python tests/e2e.py
