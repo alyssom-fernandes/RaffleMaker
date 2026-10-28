@@ -138,6 +138,15 @@ def testar(base, tmp):
         checar(f"10 PNGs do painel batem com a captura de cada modelo (até {LIMITE_DIFERENCA} em 255)",
                all(d <= LIMITE_DIFERENCA for d in difs.values()), ", ".join(f"m{m}: {d}" for m, d in difs.items()))
         checar("estado de hoje: igual depois de passar pelos 10 modelos", json.loads(pg.evaluate(SALVO)) == dict(ESTADO, modelo=10))
+        # tema: a escolha fica só na chave do tema e não muda a arte (cap é a captura do modelo 10)
+        pg.click("#b-tema")
+        tema = pg.evaluate("document.documentElement.dataset.tema")
+        dif = round(sum(ImageStat.Stat(ImageChops.difference(png_do_painel(pg), cap)).mean) / 3, 2)
+        pg.reload()
+        esperar(pg, OK)
+        checar("tema: a troca fica salva e não muda o PNG", tema == "escuro" and pg.evaluate("document.documentElement.dataset.tema") == tema
+               and pg.evaluate("localStorage.getItem('rifa.tema')") == tema and dif <= LIMITE_DIFERENCA, f"tema {tema}, diferença {dif}")
+        checar("tema: os dados salvos continuam iguais", json.loads(pg.evaluate(SALVO)) == dict(ESTADO, modelo=10))
 
         # demonstração num aparelho que já tem um estado real (em outro formato de texto: qualquer gravação mudaria os bytes)
         cd = nav.new_context(viewport={"width": 1400, "height": 1000}, accept_downloads=True)
@@ -191,6 +200,13 @@ def testar(base, tmp):
         esperar(pd, "!window.__rifa.estado.numeros[5]")
         checar("demonstração: gera o PNG", pd.evaluate("async () => (await window.__rifa.gerarImagem()).blob.size") > 100000)
         pd.wait_for_timeout(700)
+        tema = pd.evaluate("document.documentElement.dataset.tema")
+        pd.click("#b-tema")
+        checar("demonstração: troca o tema", pd.evaluate("document.documentElement.dataset.tema") not in (tema, None))
+        pd.click("#b-sobre")
+        aberto = pd.evaluate("document.querySelector('#sobre').open")
+        pd.keyboard.press("Escape")
+        checar("Sobre: abre e fecha com Esc", aberto and not pd.evaluate("document.querySelector('#sobre').open"))
         acessos = {f.url.replace(base, ""): f.evaluate("window.__acessos || []") for f in pd.frames}
         checar("demonstração: nenhum acesso ao armazenamento, nem do painel nem da arte", not any(acessos.values()), json.dumps(acessos))
         pd.reload()
