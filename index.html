@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-ZXLx9JlmsuZNU21jmrP3nowfan6SUpWBWMDHmWZDywI='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="robots" content="noindex, nofollow">
 <title>Painel da rifa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -291,6 +292,7 @@
 
 <script src="arte/svgshot.js"></script>
 <script>
+/* ══ PURO: dados e funções sem DOM, testados em tests/puro.test.mjs ══ */
 const MODELOS = [
   { id: 1, nome: 'Cartela' }, { id: 2, nome: 'Pôster' }, { id: 3, nome: 'Bento' }, { id: 4, nome: 'Vitrine' }, { id: 5, nome: 'Capa' },
   { id: 6, nome: 'Jornal' }, { id: 7, nome: 'Embarque' }, { id: 8, nome: 'Solidária' }, { id: 9, nome: 'Blocos' }, { id: 10, nome: 'Cinema' }
@@ -298,16 +300,6 @@ const MODELOS = [
 const CHAVE = 'rifa.painel.v1';
 const CAUSA_PADRAO = '';
 const PADRAO = { modelo: 1, riscar: 'todos', numeros: {}, ultimoBackup: null, alteracoes: 0, frase: '', valor: '20', qtd: 300 };
-// ?demo=1 abre uma rifa fictícia só em memória: nunca lê nem grava a CHAVE
-const DEMO = new URLSearchParams(location.search).get('demo') === '1';
-const ROTULO = DEMO ? 'Rifa - demonstração' : 'Rifa';
-const $ = s => document.querySelector(s);
-
-let estado = carregar();
-const sel = new Set();
-let ultimo = null;
-let origemForm = null;
-
 // versões antigas do painel não tinham causa, valor nem quantidade
 function completar(s) {
   const e = Object.assign({}, PADRAO, s);
@@ -320,25 +312,6 @@ function completar(s) {
   if (!MODELOS.some(m => m.id === +e.modelo)) e.modelo = 1;
   e.modelo = +e.modelo;
   return e;
-}
-function carregar() {
-  if (DEMO) return completar(demonstracao());
-  try {
-    const s = JSON.parse(localStorage.getItem(CHAVE));
-    if (s && s.numeros) return completar(s);
-  } catch (e) {}
-  return completar({});
-}
-function salvar() {
-  if (DEMO) return;
-  try {
-    localStorage.setItem(CHAVE, JSON.stringify(estado));
-    $('#salvo').textContent = 'Salvo neste navegador às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    $('#salvo').classList.remove('erro');
-  } catch (e) {
-    $('#salvo').textContent = 'Não consegui salvar! Faça um backup agora.';
-    $('#salvo').classList.add('erro');
-  }
 }
 function demonstracao() {
   const dia = 864e5, agora = Date.now();
@@ -385,6 +358,49 @@ function textoValor(n) {
   const t = String(i).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return c ? t + ',' + String(c).padStart(2, '0') : t;
 }
+// planilha para o Excel: uma linha por número, ponto e vírgula e BOM para os acentos
+function montarCSV(e) {
+  const campo = v => /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  const linhas = [['Número', 'Comprador', 'WhatsApp', 'Pago', 'Observação', 'Atualizado em']];
+  for (let n = 1; n <= e.qtd; n++) {
+    const d = e.numeros[n];
+    linhas.push([pad(n), d ? d.nome : '', d ? d.tel || '' : '', d ? (d.pago ? 'Sim' : 'Não') : '', d ? d.obs || '' : '',
+      d ? new Date(d.atualizado).toLocaleString('pt-BR') : '']);
+  }
+  return '\uFEFF' + linhas.map(l => l.map(v => campo(String(v))).join(';')).join('\r\n');
+}
+/* ══ FIM PURO ══ */
+
+// ?demo=1 abre uma rifa fictícia só em memória: nunca lê nem grava a CHAVE
+const DEMO = new URLSearchParams(location.search).get('demo') === '1';
+const ROTULO = DEMO ? 'Rifa - demonstração' : 'Rifa';
+const $ = s => document.querySelector(s);
+
+let estado = carregar();
+const sel = new Set();
+let ultimo = null;
+let origemForm = null;
+
+function carregar() {
+  if (DEMO) return completar(demonstracao());
+  try {
+    const s = JSON.parse(localStorage.getItem(CHAVE));
+    if (s && s.numeros) return completar(s);
+  } catch (e) {}
+  return completar({});
+}
+function salvar() {
+  if (DEMO) return;
+  try {
+    localStorage.setItem(CHAVE, JSON.stringify(estado));
+    $('#salvo').textContent = 'Salvo neste navegador às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    $('#salvo').classList.remove('erro');
+  } catch (e) {
+    $('#salvo').textContent = 'Não consegui salvar! Faça um backup agora.';
+    $('#salvo').classList.add('erro');
+  }
+}
+
 const valorNum = () => lerValor(estado.valor) || 0;
 const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const vendidos = () => Object.keys(estado.numeros).map(Number).sort((a, b) => a - b);
@@ -741,14 +757,7 @@ $('#arquivo').addEventListener('change', async e => {
   }
 });
 $('#b-csv').addEventListener('click', () => {
-  const campo = v => /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
-  const linhas = [['Número', 'Comprador', 'WhatsApp', 'Pago', 'Observação', 'Atualizado em']];
-  for (let n = 1; n <= estado.qtd; n++) {
-    const d = estado.numeros[n];
-    linhas.push([pad(n), d ? d.nome : '', d ? d.tel || '' : '', d ? (d.pago ? 'Sim' : 'Não') : '', d ? d.obs || '' : '',
-      d ? new Date(d.atualizado).toLocaleString('pt-BR') : '']);
-  }
-  const csv = '﻿' + linhas.map(l => l.map(v => campo(String(v))).join(';')).join('\r\n');
+  const csv = montarCSV(estado);
   baixar(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `${ROTULO} - números ${carimbo()}.csv`);
   aviso('Planilha exportada (abre no Excel)');
 });

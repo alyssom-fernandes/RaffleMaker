@@ -6,18 +6,8 @@
   'use strict';
   var doc = document, raiz = doc.documentElement, rodada = 0;
 
-  var PADRAO = {
-    causa: '',
-    frase: '', valor: '20', qtd: 300, vendidos: []
-  };
-
-  function lerURL() {
-    var q = new URLSearchParams(location.search), d = {};
-    ['causa', 'frase', 'valor'].forEach(function (k) { if (q.has(k)) d[k] = q.get(k); });
-    if (q.has('qtd')) d.qtd = parseInt(q.get('qtd'), 10);
-    if (q.has('vendidos')) d.vendidos = q.get('vendidos').split(/[\s,;]+/).filter(Boolean).map(Number);
-    return d;
-  }
+  /* ══ PURO: funções sem DOM, testadas em tests/puro.test.mjs ══ */
+  var PADRAO = { causa: '', frase: '', valor: '20', qtd: 300, vendidos: [] };
 
   // "12,50" / "12.5" / "1.000" / "1000" -> "12,50" / "12,50" / "1.000" / "1.000"
   function formatarValor(v) {
@@ -47,6 +37,15 @@
     P.frase = cuidarTexto(P.frase);
     P.vendidos = (P.vendidos || []).map(Number).filter(function (n) { return n >= 1 && n <= P.qtd; });
     return P;
+  }
+  /* ══ FIM PURO ══ */
+
+  function lerURL() {
+    var q = new URLSearchParams(location.search), d = {};
+    ['causa', 'frase', 'valor'].forEach(function (k) { if (q.has(k)) d[k] = q.get(k); });
+    if (q.has('qtd')) d.qtd = parseInt(q.get('qtd'), 10);
+    if (q.has('vendidos')) d.vendidos = q.get('vendidos').split(/[\s,;]+/).filter(Boolean).map(Number);
+    return d;
   }
 
   function preencher(P) {
