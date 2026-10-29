@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- A política do painel, sem scripts de fora (tests/csp.test.mjs confere os hashes) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-EZqsba/RxfsQwhIpul/rp0Cr9z7n1BOo3vVonTWbkRA=' 'sha256-Cq11XDBpLjFkNHKZYWQTabOPoPf8MAZ65uY2G8M6wA4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Página não encontrada | RaffleMaker</title>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232448f0'/%3E%3Cpath fill='%23fff' d='M9 10h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4v-2a2 2 0 0 1 2-2z'/%3E%3Cpath d='M19.5 11v10' stroke='%232448f0' stroke-width='1.5' stroke-dasharray='1.5 1.6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..750&family=JetBrains+Mono:wght@700&display=swap">
+<!-- Página própria para endereço que não existe (o GitHub Pages usa o 404.html da raiz).
+     Segue o tema escolhido no painel e, sem escolha, o do aparelho. -->
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('rifa.tema'); } catch (e) {}
+    if (t !== 'claro' && t !== 'escuro') t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+    document.documentElement.setAttribute('data-tema', t);
+  })();
+</script>
+<style>
+  /* Mesma identidade do painel: cinzas neutros e o azul do bilhete */
+  :root{ --fundo:#eceef1; --cartao:#fff; --tinta:#16171b; --apagado:#5f636b; --linha:#e0e3e7; --azul:#2448f0; --azul-tinta:#2448f0;
+    --afn:#6b1f2a; --afn-traco:rgba(107,31,42,.4); --afn-sys:#505050; color-scheme:light }
+  [data-tema="escuro"]{ --fundo:#101114; --cartao:#18191d; --tinta:#eceef1; --apagado:#9b9fa8; --linha:#2a2c32; --azul:#3d5cf5; --azul-tinta:#8ea4ff;
+    --afn:#c44a5a; --afn-traco:rgba(196,74,90,.4); --afn-sys:rgba(255,255,255,.28); color-scheme:dark }
+  *{ box-sizing:border-box; margin:0 }
+  body{ min-height:100vh; display:flex; flex-direction:column; background:var(--fundo); color:var(--tinta);
+    font-family:Geist,"Segoe UI",system-ui,sans-serif; -webkit-font-smoothing:antialiased }
+  .conteudo{ flex:1; display:flex; align-items:center; justify-content:center; padding:16px }
+  main{ width:min(420px, 100%); padding:32px 28px 26px; background:var(--cartao); border:1px solid var(--linha); border-radius:18px;
+    animation:entra .3s cubic-bezier(.2,0,.2,1) both }
+  .logo{ display:block; width:36px; height:36px; margin-bottom:22px }
+  .logo rect{ fill:var(--azul) }
+  .logo .furos{ stroke:var(--azul); stroke-width:1.5; stroke-dasharray:1.5 1.6 }
+  .codigo{ font-weight:600; font-size:13px; color:var(--apagado); margin-bottom:6px }
+  h1{ font-size:22px; font-weight:700; letter-spacing:-.015em; margin-bottom:8px }
+  p{ color:var(--apagado); margin-bottom:24px; line-height:1.55; font-size:15px }
+  a{ display:inline-flex; align-items:center; min-height:42px; padding:0 18px; border-radius:12px; text-decoration:none; font-weight:600; font-size:14.5px;
+    background:var(--azul); color:#fff }
+  a:hover{ opacity:.92 }
+  a:focus-visible{ outline:2.5px solid var(--azul-tinta); outline-offset:3px }
+  /* Rodapé "AFN SYSTEMS | RaffleMaker", o mesmo do painel */
+  .rodape{ padding:20px 36px; border-top:1px solid var(--linha); display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap }
+  .pf-marca{ display:flex; align-items:baseline }
+  .pf-afn, .pf-sys, .pf-pipe, .pf-info{ font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--afn-sys) }
+  .pf-afn, .pf-sys{ font-size:10px; letter-spacing:2px }
+  .pf-afn{ color:var(--afn); -webkit-text-stroke:.3px var(--afn-traco) }
+  .pf-gap{ width:4px; display:inline-block }
+  .pf-pipe{ font-size:13px }
+  .pf-info{ font-size:11px; letter-spacing:.3px }
+  @media (max-width:480px){ .rodape{ padding:16px 18px } }
+  @keyframes entra{ from{ opacity:0; transform:translateY(6px) } to{ opacity:1; transform:none } }
+  @media (prefers-reduced-motion: reduce){ main{ animation:none } }
+  @media (forced-colors: active){ a{ border:1px solid ButtonText } }
+</style>
+</head>
+<body>
+  <div class="conteudo">
+    <main>
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9"/><path fill="#fff" d="M9 10h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4v-2a2 2 0 0 1 2-2z"/><path class="furos" d="M19.5 11v10"/></svg>
+      <p class="codigo">Erro 404</p>
+      <h1>Página não encontrada</h1>
+      <p>O endereço não existe ou mudou. O painel da rifa continua no mesmo lugar, com o que você deixou salvo neste navegador.</p>
+      <a id="voltar" href="/RaffleMaker/">Abrir o RaffleMaker</a>
+    </main>
+  </div>
+  <footer class="rodape" aria-label="AFN Systems, RaffleMaker">
+    <div class="pf-marca"><span class="pf-afn">AFN</span><span class="pf-gap"></span><span class="pf-sys">SYSTEMS</span></div>
+    <span class="pf-pipe" aria-hidden="true">|</span>
+    <span class="pf-info">RaffleMaker</span>
+  </footer>
+<script>
+  /* Servido fora do GitHub Pages (na raiz de um servidor local), o painel fica em "/" */
+  if (!location.pathname.startsWith('/RaffleMaker/')) document.getElementById('voltar').href = '/';
+</script>
+</body>
+</html>
