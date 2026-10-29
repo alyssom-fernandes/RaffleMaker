@@ -29,17 +29,27 @@ ESTADO = {"modelo": 1, "riscar": "todos", "numeros": {"3": venda("Teste A", True
 # formato de 27/10: sem causa, valor e quantidade
 ANTIGO = {"modelo": 2, "riscar": "todos", "numeros": {"1": venda("Antigo", True), "2": venda("Antigo", False)},
           "ultimoBackup": None, "alteracoes": 3, "frase": "Em prol da reforma da escola"}
-# registra todo acesso ao localStorage e ao sessionStorage da página e dos iframes
+FOTO_TESTE = RAIZ / "tests" / "fotos" / "foto-teste.jpg"
+# registra todo acesso ao localStorage, ao sessionStorage e ao IndexedDB da página e dos iframes
 ESPIAO = """(() => {
   const log = window.__acessos = [];
   for (const m of ['getItem', 'setItem', 'removeItem', 'clear', 'key']) {
     const orig = Storage.prototype[m];
     Storage.prototype[m] = function (...a) { log.push(m + ' ' + String(a[0])); return orig.apply(this, a); };
   }
+  for (const m of ['open', 'deleteDatabase']) {
+    const orig = IDBFactory.prototype[m];
+    IDBFactory.prototype[m] = function (...a) { log.push('indexedDB.' + m + ' ' + String(a[0])); return orig.apply(this, a); };
+  }
 })();"""
 TUDO = "() => Object.fromEntries(Object.keys(localStorage).map(k => [k, localStorage.getItem(k)]))"
 SALVO = f"localStorage.getItem('{CHAVE}')"
 OK = "document.querySelector('#quadro').classList.contains('ok')"
+ARTE_P = "document.querySelector('#quadro').contentDocument"
+CABE = """el => { const r = el.ownerDocument.createRange(), cs = [], w = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) { if (!n.data.trim()) continue; r.selectNodeContents(n);
+    for (const q of r.getClientRects()) { if (q.width < 1) continue; const c = q.top + q.height / 2; if (!cs.some(x => Math.abs(x - c) < q.height * 0.4)) cs.push(c); } }
+  return cs.length <= (+el.dataset.linhas || 2); }"""
 resultados, erros, ignorados = [], [], []
 
 
@@ -99,6 +109,10 @@ def testar(base, tmp):
                pg.evaluate("document.querySelector('#quadro').contentDocument.documentElement.classList.contains('sem-causa')"))
         checar("aparelho novo: grava o estado com a causa vazia", json.loads(pg.evaluate(SALVO)).get("causa") == "")
         checar("painel de verdade: sem a faixa da demonstração", pg.locator("#faixa-demo").is_hidden() and pg.locator("#salvo").is_visible())
+        checar("aparelho novo: os 4 prêmios originais, com as fotos, e o cartão fechado", pg.evaluate("window.__rifa.estado.premios === undefined")
+               and not pg.evaluate("document.querySelector('#premios').open")
+               and pg.evaluate("document.querySelector('#premios-ed li[data-i=\"0\"] img').getAttribute('src')") == "arte/fotos/v1-panela.jpg"
+               and "Panela Elétrica de Pressão" in pg.locator("#resumo-premios").inner_text())
         c.close()
 
         # migração do formato de 27/10
@@ -163,6 +177,8 @@ def testar(base, tmp):
         e = pd.evaluate("window.__rifa.estado")
         checar("demonstração: abre a rifa fictícia, não os dados salvos",
                e["causa"] == CAUSA_DEMO and len(e["numeros"]) == 41 and 0 < sum(x["pago"] for x in e["numeros"].values()) < 41)
+        checar("demonstração: prêmios fictícios, com as fotos da demonstração na arte", [p["nome"] for p in e["premios"]][0] == "Bicicleta urbana"
+               and pd.evaluate(ARTE_P + ".querySelector('[data-premio-foto=\"1\"]').getAttribute('src')") == "fotos/demo-1.jpg")
         checar("demonstração: faixa visível", pd.locator("#faixa-demo").is_visible() and "Demonstração: nada é salvo" in pd.locator("#faixa-demo").inner_text())
         checar("demonstração: sem o selo de salvo e sem links de WhatsApp", pd.locator("#salvo").is_hidden() and pd.locator("#tabela a").count() == 0)
         pd.click('.num[data-n="5"]'); pd.click('.num[data-n="6"]')
@@ -200,6 +216,14 @@ def testar(base, tmp):
         esperar(pd, "!window.__rifa.estado.numeros[5]")
         checar("demonstração: gera o PNG", pd.evaluate("async () => (await window.__rifa.gerarImagem()).blob.size") > 100000)
         pd.wait_for_timeout(700)
+        pd.click("#premios summary")
+        with pd.expect_file_chooser() as fc:
+            pd.locator("[data-trocar]").first.click()
+        fc.value.set_files(str(FOTO_TESTE))
+        esperar(pd, "window.__rifa.estado.premios && window.__rifa.estado.premios[0].foto === 'idb:premio-1'")
+        pd.locator('#premios-ed [data-campo="nome"]').nth(1).fill("Air fryer 4 litros")
+        esperar(pd, ARTE_P + ".querySelector('[data-premio-foto=\"1\"]').src.startsWith('blob:')")
+        checar("demonstração: troca foto e nome do prêmio na arte", "Air fryer" in pd.evaluate(ARTE_P + ".querySelector('[data-premio-nome=\"2\"]').textContent"))
         tema = pd.evaluate("document.documentElement.dataset.tema")
         pd.click("#b-tema")
         checar("demonstração: troca o tema", pd.evaluate("document.documentElement.dataset.tema") not in (tema, None))
@@ -209,6 +233,7 @@ def testar(base, tmp):
         checar("Sobre: abre e fecha com Esc", aberto and not pd.evaluate("document.querySelector('#sobre').open"))
         acessos = {f.url.replace(base, ""): f.evaluate("window.__acessos || []") for f in pd.frames}
         checar("demonstração: nenhum acesso ao armazenamento, nem do painel nem da arte", not any(acessos.values()), json.dumps(acessos))
+        checar("demonstração: nenhum banco no IndexedDB", pd.evaluate("async () => (await indexedDB.databases()).length") == 0)
         pd.reload()
         esperar(pd, OK, timeout=30000)
         e = pd.evaluate("window.__rifa.estado")
@@ -238,6 +263,105 @@ def testar(base, tmp):
             salvo = json.loads(pg.evaluate(SALVO))
             checar(f"painel de verdade: restaura o backup da versão {versao}",
                    all(salvo.get(k) == v for k, v in esperado.items()) and sorted(salvo["numeros"], key=int) == sorted(est["numeros"], key=int))
+
+        # prêmios editados: foto enviada e nome novo; a arte bate com a captura e o backup leva a foto
+        cp = nav.new_context(viewport={"width": 1400, "height": 1000}, accept_downloads=True)
+        pp = cp.new_page(); vigiar(pp, "prêmios")
+        pp.goto(base + "arte/m01.html")
+        pp.evaluate("([k, e]) => localStorage.setItem(k, JSON.stringify(e))", [CHAVE, ESTADO])
+        pp.goto(base + "index.html")
+        esperar(pp, OK)
+        pp.click("#premios summary")
+        with pp.expect_file_chooser() as fc:
+            pp.locator("[data-trocar]").first.click()
+        fc.value.set_files(str(FOTO_TESTE))
+        esperar(pp, "window.__rifa.estado.premios && window.__rifa.estado.premios[0].foto === 'idb:premio-1'")
+        esperar(pp, ARTE_P + ".querySelector('[data-premio-foto=\"1\"]').src.startsWith('blob:')")
+        checar("prêmios: trocar só a foto deixa o nome como o modelo traz", pp.evaluate(ARTE_P + ".querySelector('[data-premio-nome=\"1\"]').innerHTML").count("<br>") == 1)
+        pp.locator('#premios-ed [data-campo="nome"]').nth(1).fill("Air fryer 4 litros com cesto removível")
+        pp.locator('#premios-ed [data-campo="marca"]').nth(1).fill("Doação da Padaria Central")
+        pp.locator('#premios-ed [data-campo="marca"]').nth(1).press("Tab")
+        pp.wait_for_timeout(700)
+        salvo = json.loads(pp.evaluate(SALVO))
+        resto = lambda e: {k: v for k, v in e.items() if k not in ("premios", "alteracoes")}
+        checar("prêmios: ficam salvos, e o resto do estado não muda", resto(salvo) == resto(ESTADO) and salvo["premios"][0]["foto"] == "idb:premio-1"
+               and salvo["premios"][1]["nome"] == "Air fryer 4 litros com cesto removível"
+               and salvo["premios"][2] == {"nome": "Botina Masculina", "marca": "FlexFort", "foto": "legado"})
+        premios_url = [{"nome": "Panela Elétrica de Pressão", "marca": "Agratto", "foto": "../tests/fotos/foto-teste.jpg"},
+                       {"nome": "Air fryer 4 litros com cesto removível", "marca": "Doação da Padaria Central", "foto": "legado"}, None, None]
+        q2 = q + "&premios=" + urllib.parse.quote(json.dumps(premios_url, ensure_ascii=False))
+        ref = nav.new_page(viewport={"width": 1080, "height": 1920}); vigiar(ref, "captura dos prêmios")
+        difs, cabe = {}, {}
+        for m in range(1, 11):
+            if m != 1:
+                pp.click(f'.modelo[data-m="{m}"]')
+            esperar(pp, f"window.__rifa.estado.modelo === {m} && document.querySelector('#quadro').src.endsWith('m{m:02d}.html') && " + OK)
+            img = png_do_painel(pp)
+            cabe[m] = pp.evaluate(f"() => ({CABE})({ARTE_P}.querySelector('[data-premio-nome=\"2\"]'))")
+            ref.goto(base + f"arte/m{m:02d}.html?" + q2)
+            esperar(ref, "document.documentElement.dataset.pronto")
+            cap = Image.open(io.BytesIO(ref.screenshot(clip={"x": 0, "y": 0, "width": 1080, "height": 1920}))).convert("RGB")
+            difs[m] = round(sum(ImageStat.Stat(ImageChops.difference(img, cap)).mean) / 3, 2) if img.size == cap.size else float("inf")
+        ref.close()
+        checar(f"prêmios: os 10 PNGs batem com a captura (até {LIMITE_DIFERENCA} em 255)", all(d <= LIMITE_DIFERENCA for d in difs.values()),
+               ", ".join(f"m{m}: {d}" for m, d in difs.items()))
+        checar("prêmios: o nome de 38 caracteres cabe nas linhas de cada modelo", all(cabe.values()), str([m for m, ok in cabe.items() if not ok]))
+        png_m10 = png_do_painel(pp)
+        with pp.expect_download() as d:
+            pp.click("#b-backup")
+        bk3 = tmp / "backup-v3.json"; d.value.save_as(bk3)
+        j3 = json.loads(bk3.read_text(encoding="utf-8"))
+        checar("backup com foto: versão 3, com a foto e os prêmios", j3["versao"] == 3 and j3["fotos"]["premio-1"].startswith("data:image/jpeg;base64,")
+               and j3["estado"]["premios"][1]["marca"] == "Doação da Padaria Central")
+        cp.close()
+        # restaurar num aparelho novo: a foto volta para o IndexedDB e a arte sai igual
+        cn = nav.new_context(viewport={"width": 1400, "height": 1000})
+        pn = cn.new_page(); vigiar(pn, "restaurar com foto")
+        pn.goto(base + "index.html")
+        esperar(pn, OK)
+        pn.set_input_files("#arquivo", str(bk3))
+        esperar(pn, "window.__rifa.estado.premios && window.__rifa.estado.premios[0].foto === 'idb:premio-1' && window.__rifa.estado.modelo === 10"
+                    " && document.querySelector('#quadro').src.endsWith('m10.html') && " + OK, timeout=15000)
+        pn.wait_for_timeout(500)
+        dif = round(sum(ImageStat.Stat(ImageChops.difference(png_do_painel(pn), png_m10)).mean) / 3, 2)
+        no_banco = pn.evaluate("""() => new Promise(ok => { const r = indexedDB.open('rifa.fotos'); r.onsuccess = () => {
+            const q = r.result.transaction('fotos').objectStore('fotos').get('premio-1'); q.onsuccess = () => ok(q.result ? q.result.size : 0); }; })""")
+        checar("restaurar com foto: a foto volta para o aparelho e a arte sai igual", no_banco > 1000 and dif <= 0.5, f"foto {no_banco} bytes, diferença {dif}")
+        MINI = "document.querySelector('#premios-ed li[data-i=\"0\"] img').src"
+        esperar(pn, MINI + ".startsWith('blob:')", timeout=5000)
+        pn.reload()
+        esperar(pn, OK)
+        esperar(pn, MINI + ".startsWith('blob:')", timeout=5000)
+        checar("miniatura da foto enviada aparece depois de restaurar e de recarregar", True)
+        cn.close()
+
+        # backup com foto corrompida: os números voltam, o prêmio fica sem foto e o aviso diz qual
+        ruim = dict(j3, fotos={"premio-1": "data:image/jpeg;base64,AAAAAAAA"})
+        bk_ruim = tmp / "backup-foto-ruim.json"; bk_ruim.write_text(json.dumps(ruim, ensure_ascii=False), encoding="utf-8")
+        cr = nav.new_context()
+        pr = cr.new_page(); vigiar(pr, "foto corrompida")
+        pr.goto(base + "index.html")
+        esperar(pr, OK)
+        pr.set_input_files("#arquivo", str(bk_ruim))
+        esperar(pr, "Object.keys(window.__rifa.estado.numeros).length === 3", timeout=10000)
+        esperar(pr, "document.querySelector('#aviso').textContent.includes('Backup restaurado')", timeout=5000)
+        checar("backup com foto corrompida: números voltam, prêmio sem foto e aviso", pr.evaluate("window.__rifa.estado.premios[0].foto") is None
+               and "sem a foto do 1º prêmio" in pr.evaluate("document.querySelector('#aviso').textContent"), pr.evaluate("document.querySelector('#aviso').textContent"))
+        cr.close()
+
+        # IndexedDB quebrado: os números voltam mesmo assim, e o aviso explica as fotos
+        cq = nav.new_context()
+        cq.add_init_script("IDBFactory.prototype.open = function () { throw new DOMException('teste', 'UnknownError'); };")
+        pq = cq.new_page(); dial_q = vigiar(pq, "IndexedDB quebrado")
+        pq.goto(base + "index.html")
+        esperar(pq, OK)
+        n = len(dial_q)
+        pq.set_input_files("#arquivo", str(bk3))
+        esperar(pq, "Object.keys(window.__rifa.estado.numeros).length === 3", timeout=10000)
+        msg = esperar_dialogo(pq, dial_q, n + 1)
+        checar("IndexedDB quebrado: os números voltam e o aviso explica as fotos", pq.evaluate("window.__rifa.estado.premios[0].foto") is None
+               and bool(msg) and "fotos não couberam" in msg, msg or "")
+        cq.close()
         ctx.close()
         nav.close()
 

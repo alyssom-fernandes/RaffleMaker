@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-qnPs+dCKmM41MhsK/im+v3slk31E6+3oo9oK4cyxRfg=' 'sha256-i/Fhbvzh8DUAN4mkm6e0mYbu5w++0Rmxv1NBUlhLL7k='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-qnPs+dCKmM41MhsK/im+v3slk31E6+3oo9oK4cyxRfg=' 'sha256-RTI0SA7VDjFTlD840ngJ3vHV4lFljGYgiMP+N0CyNgo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' blob: data: https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="robots" content="noindex, nofollow">
 <title>Painel da rifa</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -163,6 +163,21 @@
   .opcoes{ display:flex; gap:14px; flex-wrap:wrap; font-size:13.5px; align-items:center }
   .opcoes label{ display:flex; align-items:center; gap:6px; font-weight:500; font-size:13.5px; cursor:pointer }
   .opcoes input{ accent-color:var(--azul) }
+
+  /* prêmios: fechado quando já estão preenchidos, aberto num aparelho novo */
+  details.premios summary{ display:flex; align-items:center; gap:12px; cursor:pointer; list-style:none }
+  details.premios summary::-webkit-details-marker{ display:none }
+  details.premios summary::after{ content:''; width:8px; height:8px; margin:0 4px 0 auto; border:solid var(--apagado); border-width:0 2px 2px 0; transform:rotate(45deg) translateY(-3px); flex:none }
+  details.premios[open] summary::after{ transform:rotate(-135deg) translateY(-3px) }
+  details.premios[open] summary{ margin-bottom:14px }
+  .resumo-premios{ flex:1; min-width:0; color:var(--apagado); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  details.premios[open] .resumo-premios{ display:none }
+  .premios-ed{ list-style:none; display:grid; gap:14px }
+  .premios-ed li{ display:grid; grid-template-columns:76px minmax(0,1fr); gap:12px; align-items:start }
+  .foto-ed{ position:relative; width:76px; aspect-ratio:3/4; padding:0; border:1px solid var(--linha-forte); border-radius:12px; overflow:hidden; background:var(--cartao-2); cursor:pointer }
+  .foto-ed img{ display:block; width:100%; height:100%; object-fit:cover }
+  .foto-ed span{ position:absolute; left:0; right:0; bottom:0; padding:3px 0 4px; background:rgba(16,17,20,.74); color:#fff; font-size:11.5px; font-weight:600 }
+  .campos-premio{ display:grid; gap:8px }
 
   /* a arte aparece num celular, com a moldura do Status, como no ArtMaker */
   .celular{ width:min(100%, 304px); margin:18px auto 16px; padding:9px; border-radius:46px; background:#0b0b0d;
@@ -343,6 +358,14 @@
         <datalist id="nomes"></datalist>
       </section>
 
+      <section class="cartao">
+        <details class="premios" id="premios">
+          <summary><h2>Prêmios</h2><span class="resumo-premios" id="resumo-premios"></span></summary>
+          <ol class="premios-ed" id="premios-ed"></ol>
+        </details>
+        <input type="file" id="arquivo-foto" accept="image/*" hidden>
+      </section>
+
       <section class="cartao" id="arte">
         <div class="cab"><h2>Arte para postar</h2></div>
         <div class="modelos" id="modelos" role="radiogroup" aria-label="Modelo da arte"></div>
@@ -444,6 +467,32 @@ const MODELOS = [
 const CHAVE = 'rifa.painel.v1';
 const CAUSA_PADRAO = '';
 const PADRAO = { modelo: 1, riscar: 'todos', numeros: {}, ultimoBackup: null, alteracoes: 0, frase: '', valor: '20', qtd: 300 };
+// os 4 prêmios da rifa original: um estado sem "premios" continua com eles, e a arte não muda
+const PREMIOS_ORIGINAIS = [
+  { nome: 'Panela Elétrica de Pressão', marca: 'Agratto', foto: 'legado' },
+  { nome: 'Kit Perfume Unissex', marca: 'L’Essence', foto: 'legado' },
+  { nome: 'Botina Masculina', marca: 'FlexFort', foto: 'legado' },
+  { nome: 'Cafeteira Elétrica', marca: 'Cadence', foto: 'legado' }
+];
+const FOTOS_ORIGINAIS = ['v1-panela', 'v2-kit-perfume', 'v3-botina', 'v4-cafeteira'];
+const premiosDe = e => e.premios || PREMIOS_ORIGINAIS;
+// foto: 'legado' (a que o modelo já traz), 'idb:premio-N' (enviada, guardada no aparelho), 'fotos/...' (da demonstração) ou null
+function normalizarPremios(lista) {
+  if (!Array.isArray(lista) || lista.length !== 4) return undefined;
+  return lista.map(p => {
+    p = p && typeof p === 'object' ? p : {};
+    const foto = typeof p.foto === 'string' && /^(legado|idb:premio-[1-4]|fotos\/[\w.-]+)$/.test(p.foto) ? p.foto : null;
+    return Object.assign({}, p, { nome: String(p.nome || '').slice(0, 40), marca: String(p.marca || '').slice(0, 30), foto });
+  });
+}
+// para a arte: null deixa o prêmio original do modelo; url() traduz a foto num endereço
+function premiosArte(premios, url) {
+  return premios.map((p, i) => {
+    const o = PREMIOS_ORIGINAIS[i];
+    if (p.foto === 'legado' && p.nome === o.nome && p.marca === o.marca) return null;
+    return { nome: p.nome, marca: p.marca, foto: p.foto === 'legado' ? 'legado' : p.foto ? url(p.foto) : null };
+  });
+}
 // versões antigas do painel não tinham causa, valor nem quantidade
 function completar(s) {
   const e = Object.assign({}, PADRAO, s);
@@ -455,6 +504,10 @@ function completar(s) {
   if (!(lerValor(e.valor) > 0)) e.valor = '20';
   if (!MODELOS.some(m => m.id === +e.modelo)) e.modelo = 1;
   e.modelo = +e.modelo;
+  if ('premios' in e) {
+    const p = normalizarPremios(e.premios);
+    if (p) e.premios = p; else delete e.premios;
+  }
   return e;
 }
 function demonstracao() {
@@ -483,7 +536,14 @@ function demonstracao() {
     nums.forEach((n, i) => { numeros[n] = { nome, tel, pago: i < pagos, obs, criado: quando, atualizado: quando }; });
   }
   return { modelo: 1, riscar: 'todos', numeros, ultimoBackup: new Date(agora - 2 * dia).toISOString(), alteracoes: 4,
-    frase: 'Sorteio pela Loteria Federal', valor: '20', qtd: 300, causa: 'Em prol da reforma da creche do bairro' };
+    frase: 'Sorteio pela Loteria Federal', valor: '20', qtd: 300, causa: 'Em prol da reforma da creche do bairro',
+    // prêmios fictícios, só aqui; fotos do Unsplash (licença livre) de Lopify, Marek Mucha, Freddie Collins e Aaron Simpson
+    premios: [
+      { nome: 'Bicicleta urbana', marca: 'Bicicletaria do bairro', foto: 'fotos/demo-1.jpg' },
+      { nome: 'Kit churrasco', marca: 'Açougue do bairro', foto: 'fotos/demo-2.jpg' },
+      { nome: 'Cesta de café da manhã', marca: 'Padaria do bairro', foto: 'fotos/demo-3.jpg' },
+      { nome: 'Cafeteira italiana', marca: 'Empório do bairro', foto: 'fotos/demo-4.jpg' }
+    ] };
 }
 
 const pad = n => String(n).padStart(3, '0');
@@ -534,15 +594,93 @@ function carregar() {
   return completar({});
 }
 function salvar() {
-  if (DEMO) return;
+  if (DEMO) return true;
   try {
     localStorage.setItem(CHAVE, JSON.stringify(estado));
     $('#salvo').textContent = 'Salvo neste navegador às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     $('#salvo').classList.remove('erro');
+    return true;
   } catch (e) {
     $('#salvo').textContent = 'Não consegui salvar! Faça um backup agora.';
     $('#salvo').classList.add('erro');
+    return false;
   }
+}
+
+/* ---------- fotos dos prêmios: IndexedDB no aparelho; a demonstração guarda só na memória ---------- */
+const fotosUrl = new Map(), fotosMem = new Map();
+let bancoFotos = null, fotosProntas = Promise.resolve();
+function banco() {
+  return bancoFotos || (bancoFotos = new Promise((ok, erro) => {
+    const r = indexedDB.open('rifa.fotos', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('fotos');
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => erro(r.error);
+  }).catch(err => { bancoFotos = null; throw err; }));
+}
+async function lerFoto(chave) {
+  if (DEMO) return fotosMem.get(chave) || null;
+  const db = await banco();
+  return new Promise((ok, erro) => {
+    const q = db.transaction('fotos').objectStore('fotos').get(chave);
+    q.onsuccess = () => ok(q.result || null);
+    q.onerror = () => erro(q.error);
+  });
+}
+// grava várias fotos numa transação só: ou entram todas, ou nenhuma
+async function gravarFotos(fotos) {
+  if (DEMO) { fotos.forEach((blob, chave) => fotosMem.set(chave, blob)); return; }
+  const db = await banco();
+  await new Promise((ok, erro) => {
+    const tr = db.transaction('fotos', 'readwrite'), loja = tr.objectStore('fotos');
+    fotos.forEach((blob, chave) => loja.put(blob, chave));
+    tr.oncomplete = ok;
+    tr.onerror = tr.onabort = () => erro(tr.error);
+  });
+}
+const gravarFoto = (chave, blob) => gravarFotos(new Map([[chave, blob]]));
+function usarFoto(chave, blob) {
+  if (fotosUrl.has(chave)) URL.revokeObjectURL(fotosUrl.get(chave));
+  if (blob) fotosUrl.set(chave, URL.createObjectURL(blob)); else fotosUrl.delete(chave);
+}
+// endereço da foto: relativo à arte (arte/mNN.html) ou, com noPainel, à página do painel
+function urlFoto(foto, i, noPainel) {
+  const pasta = noPainel ? 'arte/' : '';
+  if (foto === 'legado') return pasta + `fotos/${FOTOS_ORIGINAIS[i]}.jpg`;
+  if (foto && foto.startsWith('idb:')) return fotosUrl.get(foto.slice(4)) || null;
+  return foto ? pasta + foto : null;
+}
+async function carregarFotos() {
+  for (const p of premiosDe(estado)) {
+    const chave = p.foto && p.foto.startsWith('idb:') ? p.foto.slice(4) : null;
+    if (chave && !fotosUrl.has(chave)) try { usarFoto(chave, await lerFoto(chave)); } catch (e) {}
+  }
+}
+// a foto vira JPEG de até 1080 px: o backup fica leve e a arte sai igual
+async function reduzirFoto(arquivo) {
+  const url = URL.createObjectURL(arquivo);
+  try {
+    const img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => erro(new Error('imagem')); i.src = url; });
+    const k = Math.min(1, 1080 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.naturalWidth * k));
+    c.height = Math.max(1, Math.round(img.naturalHeight * k));
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise((ok, erro) => c.toBlob(b => b ? ok(b) : erro(new Error('jpeg')), 'image/jpeg', 0.85));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+// "do 2º prêmio", "do 1º e do 3º prêmio"
+function dosPremios(nums) {
+  const t = nums.map(n => `do ${n}º`);
+  return (t.length > 1 ? t.slice(0, -1).join(', ') + ' e ' + t[t.length - 1] : t[0]) + ' prêmio';
+}
+function lerComoDataURL(blob) {
+  return new Promise((ok, erro) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = () => erro(f.error); f.readAsDataURL(blob); });
 }
 
 const valorNum = () => lerValor(estado.valor) || 0;
@@ -739,12 +877,13 @@ function marcados() {
   return vendidos().filter(n => n <= estado.qtd && (estado.riscar !== 'pagos' || estado.numeros[n].pago));
 }
 function dadosArte() {
-  return { causa: estado.causa, frase: estado.frase, valor: estado.valor, qtd: estado.qtd, vendidos: marcados() };
+  return { causa: estado.causa, frase: estado.frase, valor: estado.valor, qtd: estado.qtd, vendidos: marcados(),
+    premios: premiosArte(premiosDe(estado), f => urlFoto(f, 0, false)) };
 }
 function aplicar() {
   const w = quadro.contentWindow;
   if (!quadroPronto || !w || typeof w.rifaAplicar !== 'function') return aplicando;
-  aplicando = w.rifaAplicar(dadosArte()).then(() => { quadro.classList.add('ok'); $('#carregando').hidden = true; });
+  aplicando = fotosProntas.then(() => w.rifaAplicar(dadosArte())).then(() => { quadro.classList.add('ok'); $('#carregando').hidden = true; });
   return aplicando;
 }
 function atualizarPrevia() { clearTimeout(tPrevia); tPrevia = setTimeout(aplicar, 200); }
@@ -810,6 +949,68 @@ $('#seg-qtd').addEventListener('click', e => {
 });
 document.querySelectorAll('input[name=riscar]').forEach(r => r.addEventListener('change', () => { estado.riscar = r.value; salvar(); atualizarPrevia(); }));
 
+/* ---------- prêmios ---------- */
+let premioDaFoto = 0;
+function montarPremios() {
+  const premios = premiosDe(estado);
+  $('#premios-ed').innerHTML = premios.map((p, i) => `<li data-i="${i}">
+      <button type="button" class="foto-ed" data-trocar aria-label="Trocar a foto do ${i + 1}º prêmio"><img src="${esc(urlFoto(p.foto, i, true) || 'arte/fotos/sem-foto.jpg')}" alt=""><span aria-hidden="true">Trocar</span></button>
+      <div class="campos-premio">
+        <label>${i + 1}º prêmio<input type="text" data-campo="nome" maxlength="40" value="${esc(p.nome)}" placeholder="Ex.: Air fryer 4 litros"></label>
+        <label>Marca ou doador<input type="text" data-campo="marca" maxlength="30" value="${esc(p.marca)}" placeholder="Opcional" aria-label="Marca ou doador do ${i + 1}º prêmio"></label>
+      </div>
+    </li>`).join('');
+  resumoPremios();
+}
+// as miniaturas trocam de foto sem refazer os campos: não atrapalha quem está digitando
+function atualizarMiniaturas() {
+  premiosDe(estado).forEach((p, i) => {
+    const img = document.querySelector(`#premios-ed li[data-i="${i}"] img`);
+    if (img) img.src = urlFoto(p.foto, i, true) || 'arte/fotos/sem-foto.jpg';
+  });
+}
+function resumoPremios() {
+  const nomes = premiosDe(estado).map(p => p.nome.trim()).filter(Boolean);
+  $('#resumo-premios').textContent = nomes.length ? nomes.join(', ') : 'Preencha os 4 prêmios';
+}
+function editarPremio(i, mudanca) {
+  if (!estado.premios) estado.premios = PREMIOS_ORIGINAIS.map(p => Object.assign({}, p));
+  Object.assign(estado.premios[i], mudanca);
+  salvarDepois(); atualizarPrevia(); resumoPremios();
+}
+$('#premios-ed').addEventListener('input', e => {
+  const campo = e.target.dataset.campo;
+  if (campo) editarPremio(+e.target.closest('li').dataset.i, { [campo]: e.target.value });
+});
+$('#premios-ed').addEventListener('change', e => {
+  if (!e.target.dataset.campo) return;
+  estado.alteracoes = (estado.alteracoes || 0) + 1;
+  salvar(); infoBackup();
+});
+$('#premios-ed').addEventListener('click', e => {
+  const b = e.target.closest('[data-trocar]');
+  if (!b) return;
+  premioDaFoto = +b.closest('li').dataset.i;
+  $('#arquivo-foto').click();
+});
+$('#arquivo-foto').addEventListener('change', async e => {
+  const arq = e.target.files[0], i = premioDaFoto, chave = `premio-${i + 1}`;
+  e.target.value = '';
+  if (!arq) return;
+  try {
+    const blob = await reduzirFoto(arq);
+    await gravarFoto(chave, blob);
+    usarFoto(chave, blob);
+  } catch (err) {
+    alert('Não consegui usar essa foto. Tente uma foto em JPG ou PNG.');
+    return;
+  }
+  editarPremio(i, { foto: 'idb:' + chave });
+  estado.alteracoes = (estado.alteracoes || 0) + 1;
+  salvar(); infoBackup(); montarPremios();
+  aviso(`Foto do ${i + 1}º prêmio trocada`);
+});
+
 /* ---------- gerar a imagem ---------- */
 const celular = () => window.matchMedia('(pointer: coarse)').matches;
 let ultimaImagem = null;
@@ -870,37 +1071,84 @@ function infoBackup() {
   i.textContent = `Último backup: ${quando}` + (n ? ` · ${n} ${n === 1 ? 'alteração' : 'alterações'} depois dele` : '');
   i.classList.toggle('alerta', n >= 10);
 }
-$('#b-backup').addEventListener('click', () => {
+// o backup leva as fotos enviadas; sem elas, o arquivo continua no formato de antes (versão 2)
+async function fotosDoBackup() {
+  const fotos = {}, faltam = [];
+  for (const [i, p] of premiosDe(estado).entries()) {
+    const chave = p.foto && p.foto.startsWith('idb:') ? p.foto.slice(4) : null;
+    if (!chave) continue;
+    try {
+      const blob = await lerFoto(chave);
+      if (!blob) throw new Error('sem foto');
+      fotos[chave] = await lerComoDataURL(blob);
+    } catch (e) {
+      faltam.push(i + 1);
+    }
+  }
+  return { fotos, faltam };
+}
+$('#b-backup').addEventListener('click', async () => {
+  const { fotos, faltam } = await fotosDoBackup();
   estado.ultimoBackup = new Date().toISOString();
   estado.alteracoes = 0;
   const copia = { app: 'painel-da-rifa', versao: 2, salvoEm: estado.ultimoBackup, estado };
+  if (Object.keys(fotos).length) { copia.versao = 3; copia.fotos = fotos; }
   if (DEMO) copia.demo = true;
   const conteudo = JSON.stringify(copia, null, 2);
   baixar(new Blob([conteudo], { type: 'application/json' }), `${ROTULO} - backup ${carimbo()}.json`);
-  salvar(); infoBackup(); aviso('Backup salvo na pasta Downloads');
+  salvar(); infoBackup();
+  aviso(faltam.length ? `Backup salvo, mas sem a foto ${dosPremios(faltam)}` : 'Backup salvo na pasta Downloads');
 });
 $('#b-restaurar').addEventListener('click', () => $('#arquivo').click());
+// fotos do backup: só data: de imagem que abre de verdade (até ~10 MB cada)
+async function fotosDoArquivo(fotos) {
+  const lidas = new Map();
+  for (const [chave, dado] of Object.entries(fotos && typeof fotos === 'object' ? fotos : {})) {
+    if (!/^premio-[1-4]$/.test(chave) || typeof dado !== 'string' || dado.length > 14e6 || !/^data:image\/(jpeg|png|webp|gif);base64,/.test(dado)) continue;
+    try {
+      const blob = await (await fetch(dado)).blob();
+      (await createImageBitmap(blob)).close();
+      lidas.set(chave, blob);
+    } catch (e) {}
+  }
+  return lidas;
+}
 $('#arquivo').addEventListener('change', async e => {
   const arq = e.target.files[0];
   e.target.value = '';
   if (!arq) return;
+  let j, s;
   try {
-    const j = JSON.parse(await arq.text());
-    if (j.demo && !DEMO) { alert('Esse arquivo é um backup da demonstração, com dados fictícios, e não pode ser restaurado no painel.'); return; }
-    const s = j.estado || j;
+    j = JSON.parse(await arq.text());
+    s = j && (j.estado || j);
     if (!s || typeof s.numeros !== 'object') throw new Error('formato');
-    const qtd = Object.keys(s.numeros).length;
-    if (!confirm(DEMO ? `Abrir este backup na demonstração (${qtd} números vendidos)? Nada será salvo neste navegador.`
-      : `Restaurar este backup (${qtd} números vendidos)? Os dados atuais deste navegador serão substituídos.`)) return;
-    const modeloAntes = estado.modelo;
-    estado = completar(s);
-    if (vendidos().some(n => n > estado.qtd)) estado.qtd = vendidos().some(n => n > 400) ? 500 : 400;
-    salvar(); limparSelecao(); montarGrade(); marcarControles(); atualizarTudo();
-    if (estado.modelo !== modeloAntes) carregarModelo();
-    aviso('Backup restaurado');
   } catch (err) {
     alert('Esse arquivo não é um backup do painel da rifa.');
+    return;
   }
+  if (j.demo && !DEMO) { alert('Esse arquivo é um backup da demonstração, com dados fictícios, e não pode ser restaurado no painel.'); return; }
+  const qtd = Object.keys(s.numeros).length;
+  if (!confirm(DEMO ? `Abrir este backup na demonstração (${qtd} números vendidos)? Nada será salvo neste navegador.`
+    : `Restaurar este backup (${qtd} números vendidos)? Os dados atuais deste navegador serão substituídos.`)) return;
+  // tudo é lido e conferido antes de mexer em qualquer coisa
+  const fotos = await fotosDoArquivo(j.fotos), novo = completar(s), faltam = [];
+  let guardou = true;
+  if (fotos.size) try { await gravarFotos(fotos); } catch (err) { guardou = false; }
+  if (novo.premios) novo.premios.forEach((p, i) => {
+    const chave = p.foto && p.foto.startsWith('idb:') ? p.foto.slice(4) : null;
+    // foto que não veio no arquivo ou não coube no aparelho: o prêmio fica sem foto, nunca com a foto antiga deste aparelho
+    if (chave && (!guardou || !fotos.has(chave))) { p.foto = null; faltam.push(i + 1); }
+  });
+  if (guardou) fotos.forEach((blob, chave) => usarFoto(chave, blob));
+  const modeloAntes = estado.modelo;
+  estado = novo;
+  if (vendidos().some(n => n > estado.qtd)) estado.qtd = vendidos().some(n => n > 400) ? 500 : 400;
+  const salvou = salvar();
+  limparSelecao(); montarGrade(); marcarControles(); montarPremios(); atualizarTudo();
+  if (estado.modelo !== modeloAntes) carregarModelo();
+  if (!salvou) alert('O backup foi aberto nesta página, mas não consegui salvar neste navegador. Não feche a página: salve um backup novo agora.');
+  else if (!guardou) alert(`Restaurei os números e os textos, mas as fotos não couberam neste aparelho: ficou sem a foto ${dosPremios(faltam)}.`);
+  else aviso(faltam.length ? `Backup restaurado, sem a foto ${dosPremios(faltam)}` : 'Backup restaurado');
 });
 $('#b-csv').addEventListener('click', () => {
   const csv = montarCSV(estado);
@@ -942,7 +1190,9 @@ if (DEMO) {
 }
 if (vendidos().some(n => n > estado.qtd)) estado.qtd = vendidos().some(n => n > 400) ? 500 : 400;
 salvar();
-marcarTema(); montarGrade(); montarModelos(); marcarControles(); atualizarVenda(); atualizarTudo(); escalar(); carregarModelo();
+fotosProntas = carregarFotos().then(atualizarMiniaturas, () => {});
+$('#premios').open = !premiosDe(estado).some(p => p.nome.trim());
+marcarTema(); montarGrade(); montarModelos(); montarPremios(); marcarControles(); atualizarVenda(); atualizarTudo(); escalar(); carregarModelo();
 window.__rifa = { gerarImagem, aplicar, get estado() { return estado; } };
 </script>
 </body>

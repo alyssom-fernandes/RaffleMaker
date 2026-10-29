@@ -1,13 +1,13 @@
 /* motor.js — monta a arte da rifa a partir dos dados e ajusta os tamanhos.
    Dados: window.RIFA (quando o painel abre o modelo) ou parâmetros da URL:
-   ?causa=...&valor=...&frase=...&qtd=300|400|500&vendidos=1,2,3
+   ?causa=...&valor=...&frase=...&qtd=300|400|500&vendidos=1,2,3&premios=[null,{"nome":...,"marca":...,"foto":...},...]
    O painel chama window.rifaAplicar(dados), que devolve uma Promise quando a arte está pronta. */
 (function () {
   'use strict';
   var doc = document, raiz = doc.documentElement, rodada = 0;
 
   /* ══ PURO: funções sem DOM, testadas em tests/puro.test.mjs ══ */
-  var PADRAO = { causa: '', frase: '', valor: '20', qtd: 300, vendidos: [] };
+  var PADRAO = { causa: '', frase: '', valor: '20', qtd: 300, vendidos: [], premios: [] };
 
   // "12,50" / "12.5" / "1.000" / "1000" -> "12,50" / "12,50" / "1.000" / "1.000"
   function formatarValor(v) {
@@ -36,7 +36,17 @@
     P.causa = cuidarTexto(P.causa);
     P.frase = cuidarTexto(P.frase);
     P.vendidos = (P.vendidos || []).map(Number).filter(function (n) { return n >= 1 && n <= P.qtd; });
+    P.premios = normalizarPremios(P.premios);
     return P;
+  }
+
+  // 4 prêmios; null deixa o prêmio que o modelo já traz. foto: endereço da imagem, 'legado' (a do modelo) ou nada
+  function normalizarPremios(lista) {
+    return [0, 1, 2, 3].map(function (i) {
+      var p = Array.isArray(lista) ? lista[i] : null;
+      if (!p || typeof p !== 'object') return null;
+      return { nome: cuidarTexto(p.nome) || 'Nome do prêmio', marca: cuidarTexto(p.marca), foto: typeof p.foto === 'string' && p.foto ? p.foto : null };
+    });
   }
   /* ══ FIM PURO ══ */
 
@@ -45,6 +55,7 @@
     ['causa', 'frase', 'valor'].forEach(function (k) { if (q.has(k)) d[k] = q.get(k); });
     if (q.has('qtd')) d.qtd = parseInt(q.get('qtd'), 10);
     if (q.has('vendidos')) d.vendidos = q.get('vendidos').split(/[\s,;]+/).filter(Boolean).map(Number);
+    if (q.has('premios')) try { d.premios = JSON.parse(q.get('premios')); } catch (e) {}
     return d;
   }
 
@@ -57,6 +68,83 @@
     doc.querySelectorAll('[data-frase]').forEach(function (e) { e.textContent = P.frase; });
     raiz.classList.toggle('sem-causa', !P.causa);
     raiz.classList.toggle('sem-frase', !P.frase);
+    preencherPremios(P.premios);
+  }
+
+  // ---------- prêmios ----------
+  // O modelo já vem com os 4 prêmios originais. Só o prêmio que mudou é reescrito, e o original
+  // fica guardado: se o prêmio voltar a ser o original, o elemento volta exatamente como era.
+  var SEM_FOTO = 'fotos/sem-foto.jpg', originais = new Map();
+
+  function guardar(el) {
+    if (!originais.has(el)) originais.set(el, { html: el.innerHTML, src: el.getAttribute('src'), estilo: el.getAttribute('style') });
+  }
+
+  function restaurar(el) {
+    var o = originais.get(el);
+    if (!o) return;
+    if (el.tagName === 'IMG') el.setAttribute('src', o.src); else el.innerHTML = o.html;
+    if (o.estilo === null) el.removeAttribute('style'); else el.setAttribute('style', o.estilo);
+    delete el.dataset.premioNovo;
+    originais.delete(el);
+  }
+
+  // o texto do nome como o modelo traz: só os trechos de texto, com <br> valendo um espaço
+  function textoDoNome(el) {
+    return Array.prototype.map.call(el.childNodes, function (n) { return n.nodeType === 3 ? n.nodeValue : n.nodeName === 'BR' ? ' ' : ''; })
+      .join('').replace(/\s+/g, ' ').trim();
+  }
+
+  // troca só o texto do nome; elementos de dentro (o "1º", a marca) ficam onde estão
+  function trocarNome(el, nome) {
+    var nos = Array.prototype.filter.call(el.childNodes, function (n) { return n.nodeType === 3 || n.nodeName === 'BR'; });
+    var depois = nos.length ? nos[nos.length - 1].nextSibling : null;
+    var espaco = nos.length && nos[0].nodeType === 3 && /^\s/.test(nos[0].nodeValue) ? ' ' : '';
+    nos.forEach(function (n) { el.removeChild(n); });
+    el._nome = el.insertBefore(doc.createTextNode(espaco + nome), depois);
+  }
+
+  function preencherPremios(premios) {
+    [1, 2, 3, 4].forEach(function (i) {
+      var p = premios[i - 1], sel = function (q) { return doc.querySelectorAll('[data-premio-' + q + '="' + i + '"]'); };
+      if (!p) { ['foto', 'nome', 'marca'].forEach(function (q) { sel(q).forEach(restaurar); }); return; }
+      sel('foto').forEach(function (img) {
+        if (p.foto === 'legado') { restaurar(img); return; }
+        guardar(img);
+        img.setAttribute('src', p.foto || SEM_FOTO);
+        img.style.objectPosition = '50% 50%';
+      });
+      sel('nome').forEach(function (el) {
+        restaurar(el);
+        // m06: nome e marca numa frase só ("Nome, Marca.")
+        var texto = el.dataset.premioFormato === 'legenda' ? p.nome + (p.marca ? ', ' + p.marca : '') + '.' : p.nome;
+        if (texto === textoDoNome(el)) return;   // não mudou: fica como o modelo traz, com as quebras de linha dele
+        guardar(el);
+        trocarNome(el, texto);
+        el.dataset.premioNovo = '';
+      });
+      sel('marca').forEach(function (el) {
+        restaurar(el);
+        if (p.marca === el.textContent) return;
+        guardar(el);
+        el.textContent = p.marca;
+        el.style.display = p.marca ? '' : 'none';
+      });
+    });
+    // elementos recriados pelo restaurar de um elemento de fora não precisam mais da cópia
+    originais.forEach(function (o, el) { if (!el.isConnected) originais.delete(el); });
+  }
+
+  // nome escrito no painel: a fonte diminui até caber nas linhas do modelo (no máximo até 60%);
+  // se nem assim couber, as últimas palavras dão lugar a reticências
+  function caberNome(el) {
+    var base = parseFloat(getComputedStyle(el).fontSize), t = base, lim = parseInt(el.dataset.linhas, 10) || 2, no = el._nome;
+    var passou = function () { return contarLinhas(el) > lim || el.scrollWidth > el.clientWidth + 1; };
+    while (passou() && t > base * 0.6) {
+      t *= 0.95;
+      el.style.fontSize = t + 'px';
+    }
+    while (passou() && no && /\S\s+\S/.test(no.nodeValue)) no.nodeValue = no.nodeValue.replace(/\s+\S+$/, '…');
   }
 
   function montarGrade(P) {
@@ -208,6 +296,7 @@
     doc.querySelectorAll('[data-encaixe]').forEach(encaixar);
     doc.querySelectorAll('[data-encaixe-svg]').forEach(encaixarSVG);
     doc.querySelectorAll('[data-ajuste]').forEach(ajustarTexto);
+    doc.querySelectorAll('[data-premio-novo]').forEach(caberNome);
     if (typeof window.rifaDepois === 'function') window.rifaDepois(P);
     abrirEspaco();
     ajustarGrade();
