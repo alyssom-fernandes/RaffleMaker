@@ -1,0 +1,19 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Registros e temporários
+*.log
+*.tmp
+
+# Python dos scripts e do teste de navegador (o CI cria o .venv)
+__pycache__/
+*.pyc
+.venv/
