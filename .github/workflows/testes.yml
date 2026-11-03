@@ -18,12 +18,17 @@ jobs:
       - run: node --test
 
   navegador:
-    runs-on: ubuntu-latest
+    # o Playwright 1.60 só suporta oficialmente até o Ubuntu 24.04, e o ubuntu-latest está passando para o 26.04;
+    # o Python é o mesmo dos testes locais
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
       - name: Playwright e Pillow
         run: |
-          python3 -m venv .venv
+          python -m venv .venv
           .venv/bin/pip install --quiet playwright==1.60.0 pillow==12.2.0
           .venv/bin/playwright install --with-deps chromium
       - name: Painel no navegador
